@@ -3,7 +3,7 @@
 **Date:** 2026-10-31  
 **Status:** alpha, source release candidate  
 **Scope:** numerical drift detection and tensor comparison for ML inference  
-**Distribution:** source, wheel, and sdist built locally; not published to a package index
+**Distribution:** published to PyPI on 2026-10-31 (source, sdist, and CPython 3.13 Linux wheel)
 
 This report separates what was executed and observed from what is planned,
 configured, or deliberately out of scope. It describes the repository state at
@@ -40,7 +40,8 @@ Not verified by direct local execution:
   but only Windows was used for local development);
 - GPU, distributed, or accelerator execution (not implemented);
 - sustained performance across machines or thermal states;
-- publication to PyPI or any other package index (not performed).
+- publication from this workstation (the hosted release workflow uploaded 0.1.0
+  to PyPI; TestPyPI was not used).
 
 ## 2. Implemented capability
 
@@ -58,7 +59,7 @@ Not verified by direct local execution:
 | Reports | Immutable typed objects, summary text, strict JSON, self-contained HTML, atomic writes | Verified |
 | Packaging | Maturin wheel/sdist, `py.typed`, Apache-2.0 license, SBOM in wheel | Verified |
 | CI | Rust, lint/type, OS/Python matrix, NumPy floor, packaging jobs | Verified on GitHub Actions |
-| Release publishing | Separate `publish.yml`, OIDC trusted publishing, version/tag checks, TestPyPI and PyPI targets | Configured; build-only validated; upload not executed |
+| Release publishing | Separate `publish.yml`, OIDC trusted publishing, version/tag checks, TestPyPI and PyPI targets | Executed: 0.1.0 published to PyPI |
 
 ## 3. Architecture
 
@@ -287,11 +288,14 @@ download the validated artifact rather than rebuilding it; the TestPyPI and
 production runs are separate builds from the same source revision, and the
 production build repeats the wheel install and smoke test before upload.
 
-A `build-only` dispatch was exercised on GitHub Actions for 0.1.0. The Ubuntu
-build job produced a CPython 3.13 `manylinux_2_34_x86_64` wheel and an sdist,
-installed the wheel, and passed the native-backend smoke test. The TestPyPI and
-PyPI publish jobs were skipped. Publisher-side configuration and package-index
-uploads remain outstanding.
+The 0.1.0 release was published to PyPI on 2026-10-31 by the release-triggered
+workflow from the `v0.1.0` tag: the build job verified the three version
+declarations, the release tag, `twine check`, and the wheel smoke test, and the
+`Publish to PyPI` job uploaded the wheel and sdist through Trusted Publishing.
+A clean install from PyPI was verified (Windows: the published sdist builds,
+installs, and runs the native engine). TestPyPI validation was not run because
+no TestPyPI pending publisher was configured, so the production path was
+exercised directly; 0.1.0 can no longer be uploaded to TestPyPI.
 
 ## 6. Release readiness
 
@@ -306,14 +310,11 @@ Satisfied for the scoped 0.1.0 alpha:
 
 Outstanding before a public release:
 
-- authorized TestPyPI and PyPI publication, with matching trusted-publisher
-  entries for `publish.yml`;
-- a repository tag and release notes review;
 - a decision on expanding wheel coverage beyond the Linux release wheel;
 - optional longer benchmark runs on additional hardware.
 
-No package index publication has been performed. Doing so requires explicit
-authorization.
+The production upload of 0.1.0 to PyPI was performed on 2026-10-31 with explicit
+authorization; a repeat upload requires a version bump.
 
 ## 7. Deliberately not implemented
 
@@ -359,8 +360,7 @@ See [development.md](development.md) for platform notes and packaging details.
 TensorTrail 0.1.0 delivers the requested numerical comparison engine and Python
 API without claiming GPU, capture, or SIMD capabilities it does not have. The
 numerical policy is explicit, the backends are cross-checked, the native failure
-path is enforced, and the package installs from both wheel and sdist. Hosted CI
-now passes on Linux, macOS, and Windows. A separate OIDC publishing workflow is
-configured, but no package-index upload has been performed. The main remaining
-risks are publisher configuration, platform wheel coverage, and the normal
-variability of parallel benchmark timings; these are stated rather than hidden.
+path is enforced, and the package installs from both wheel and sdist.Hosted CI now passes on Linux, macOS, and Windows, and 0.1.0 is published on
+PyPI through the OIDC release workflow. The main remaining risks are platform
+wheel coverage and the normal variability of parallel benchmark timings; these
+are stated rather than hidden.

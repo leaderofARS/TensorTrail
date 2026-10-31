@@ -63,10 +63,17 @@ gh workflow run publish.yml -f target=build-only
 
 ## Validation status
 
-The `build-only` target has been exercised on GitHub Actions for 0.1.0. The
-Ubuntu build produced a CPython 3.13 `manylinux_2_34_x86_64` wheel and an sdist,
-installed the wheel, and passed the native-backend smoke test. The TestPyPI and
-PyPI publish jobs were skipped. No package-index upload has been performed.
+The `build-only` target was exercised on GitHub Actions for 0.1.0: the Ubuntu
+build produced a CPython 3.13 `manylinux_2_34_x86_64` wheel and an sdist,
+installed the wheel, and passed the native-backend smoke test.
+
+The 0.1.0 release was then published to PyPI on 2026-10-31 from the `v0.1.0`
+tag by the release-triggered workflow. A clean install from PyPI was verified:
+the source distribution builds and installs and the native engine runs. TestPyPI
+validation was not run, because no TestPyPI pending publisher was configured and
+the release path was exercised directly. Since `tensortrail==0.1.0` now exists
+on PyPI, it can no longer be validated on TestPyPI; use a new version if
+TestPyPI validation is needed in the future.
 
 ## TestPyPI validation
 

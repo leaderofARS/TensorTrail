@@ -73,7 +73,8 @@ not included; see [Scope and non-goals](README.md#scope-and-non-goals).
 - Metrics over empty or entirely non-finite comparisons are `None`, not zero.
 - Cross-backend results can differ in the last bits because summation orders
   differ; parity tests use justified tolerances.
-- No package has been published to PyPI by this repository state.
+- The 0.1.0 wheel targets CPython 3.13 on Linux x86_64; other platforms build
+  from source. The package is published on PyPI.
 
 [Unreleased]: https://github.com/leaderofARS/tensortrail/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/leaderofARS/tensortrail/releases/tag/v0.1.0

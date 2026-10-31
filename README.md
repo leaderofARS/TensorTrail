@@ -55,8 +55,9 @@ Optional PyTorch input support:
 python -m pip install "tensortrail[torch]"
 ```
 
-No package is published to PyPI by this repository state. Build and install
-from source, or use a wheel produced by CI.
+tensortrail 0.1.0 is published on PyPI: `python -m pip install tensortrail`.
+The released wheel targets CPython 3.13 on Linux x86_64; other platforms install
+from source and need a Rust toolchain.
 
 ## Quick start
 
