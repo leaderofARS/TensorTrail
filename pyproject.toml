@@ -98,3 +98,7 @@ files = ["python/tensortrail"]
 strict = true
 warn_unused_ignores = true
 show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = ["torch", "torch.*"]
+ignore_missing_imports = true
