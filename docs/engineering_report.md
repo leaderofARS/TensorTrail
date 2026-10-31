@@ -282,8 +282,10 @@ published GitHub release, or a manual dispatch targeting `build-only`,
 declarations agree, requires a release tag to equal `v<version>`, installs the
 built wheel, runs a native-backend smoke test, and runs `twine check`. It then
 publishes with PyPI Trusted Publishing (`id-token: write`). The build job has a
-`build-only` path for validation without upload, and the publish jobs download
-the validated artifact rather than rebuilding it.
+`build-only` path for validation without upload. Within a run, the publish jobs
+download the validated artifact rather than rebuilding it; the TestPyPI and
+production runs are separate builds from the same source revision, and the
+production build repeats the wheel install and smoke test before upload.
 
 A `build-only` dispatch was exercised on GitHub Actions for 0.1.0. The Ubuntu
 build job produced a CPython 3.13 `manylinux_2_34_x86_64` wheel and an sdist,

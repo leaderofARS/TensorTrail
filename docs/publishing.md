@@ -22,7 +22,7 @@ entries must use the same repository and workflow filename.
 | Owner | `leaderofARS` |
 | Repository | `TensorTrail` |
 | Workflow | `publish.yml` |
-| Environment | empty / any |
+| Environment | pypi |
 
 - PyPI: <https://pypi.org/manage/account/publishing/>
 - TestPyPI: <https://test.pypi.org/manage/account/publishing/>
@@ -47,8 +47,13 @@ The build job checks that the version in `pyproject.toml`, `_version.py`, and th
 Rust crate agree. For a GitHub release, or a manual `pypi` dispatch, it also
 requires the checked-out ref to be exactly `v<version>`. It installs the built
 wheel and runs a native-backend smoke test before the artifact is offered to the
-publish jobs. The publish jobs download that validated artifact rather than
-rebuilding it.
+publish jobs. Within a run, the publish jobs download that validated artifact
+rather than rebuilding it.
+
+The TestPyPI validation run and the production release run are separate runs.
+Each builds from the same source revision, and the production build repeats the
+wheel install and smoke test before upload. The production upload therefore uses
+a fresh build of the validated source, not the TestPyPI file bytes.
 
 To validate the workflow without uploading:
 
@@ -81,6 +86,9 @@ python -m pip install \
   "tensortrail==0.1.0"
 python -c "import numpy as np, tensortrail as tt; print(tt.compare(np.array([1.0]), np.array([2.0])).metrics.mae)"
 ```
+
+The production release is a separate build from the same tag. It repeats the
+wheel install and smoke test before upload; it does not reuse the TestPyPI files.
 
 The same version cannot be uploaded twice. If a TestPyPI upload fails after the
 files are accepted, bump the version rather than assuming a file can be replaced.
