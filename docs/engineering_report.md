@@ -3,7 +3,7 @@
 **Date:** 2026-10-31  
 **Status:** alpha, source release candidate  
 **Scope:** numerical drift detection and tensor comparison for ML inference  
-**Distribution:** source, wheel, and sdist built locally; not published
+**Distribution:** source, wheel, and sdist built locally; not published to a package index
 
 This report separates what was executed and observed from what is planned,
 configured, or deliberately out of scope. It describes the repository state at
@@ -18,7 +18,7 @@ per-tensor statistics, non-finite counts, input provenance, and execution
 metadata. The native engine is optional at import time and loaded on first use;
 the NumPy backend is a readable reference implementation and parity oracle.
 
-Verified in this workspace:
+Verified:
 
 - the Rust core compiles in release mode and passes 57 unit tests;
 - the Python suite passes 208 tests with torch installed (2 platform/hardware
@@ -27,14 +27,17 @@ Verified in this workspace:
 - wheel and sdist build successfully, both install into clean environments, and
   the installed package performs a native comparison;
 - the package builds and its tests pass on CPython 3.11, 3.12, 3.13, and 3.14;
+- the hosted GitHub Actions workflow passed Rust checks, Python lint/type
+  checks, the 12-job Linux/macOS/Windows test matrix, the NumPy 1.24 floor job,
+  and the packaging smoke job;
 - the NumPy 1.24.4 dependency floor was built against and tested on Python 3.11;
 - measured end-to-end and kernel benchmarks are recorded with environment and
   methodology.
 
-Not verified in this workspace:
+Not verified by direct local execution:
 
-- execution of the GitHub Actions workflow on GitHub's runners;
-- any operating system other than Windows 11;
+- interactive manual use on Linux or macOS (their automated test jobs passed,
+  but only Windows was used for local development);
 - GPU, distributed, or accelerator execution (not implemented);
 - sustained performance across machines or thermal states;
 - publication to PyPI or any other package index (not performed).
@@ -54,7 +57,7 @@ Not verified in this workspace:
 | Rejections | Complex, object, string, datetime, masked, extended precision, accelerator/quantized tensors | Verified |
 | Reports | Immutable typed objects, summary text, strict JSON, self-contained HTML, atomic writes | Verified |
 | Packaging | Maturin wheel/sdist, `py.typed`, Apache-2.0 license, SBOM in wheel | Verified |
-| CI | Rust, lint/type, OS/Python matrix, NumPy floor, packaging jobs | Configured, not executed remotely |
+| CI | Rust, lint/type, OS/Python matrix, NumPy floor, packaging jobs | Verified on GitHub Actions |
 
 ## 3. Architecture
 
@@ -265,8 +268,10 @@ Methodology and caveats: [benchmarking.md](benchmarking.md). Raw data:
 - wheel/sdist build, `twine check`, sdist content inspection, clean wheel
   install, smoke test, and artifact upload.
 
-The commands were executed locally as described above, but the workflow has not
-run on GitHub in this workspace. No publication step exists.
+The commands were executed locally as described above. The workflow also ran on
+GitHub Actions for the public repository: all jobs passed, including the
+Linux/macOS/Windows matrix for Python 3.11–3.14, the NumPy floor job, and the
+packaging job. No publication step exists in CI.
 
 ## 6. Release readiness
 
@@ -281,8 +286,7 @@ Satisfied for the scoped 0.1.0 alpha:
 
 Outstanding before a public release:
 
-- first hosted CI run and fixes for any platform-specific findings;
-- a repository commit/tag and release notes review;
+- a repository tag and release notes review;
 - a decision on supported wheel platforms and an authorized publication process;
 - optional longer benchmark runs on additional hardware.
 
@@ -333,6 +337,8 @@ See [development.md](development.md) for platform notes and packaging details.
 TensorTrail 0.1.0 delivers the requested numerical comparison engine and Python
 API without claiming GPU, capture, or SIMD capabilities it does not have. The
 numerical policy is explicit, the backends are cross-checked, the native failure
-path is enforced, and the package installs from both wheel and sdist. The main
-remaining risks are the untested hosted-CI environments and the normal
-variability of parallel benchmark timings; both are stated rather than hidden.
+path is enforced, and the package installs from both wheel and sdist. Hosted CI
+now passes on Linux, macOS, and Windows. The main remaining risks are release
+authorization and packaging for platforms beyond the current wheel matrix, plus
+the normal variability of parallel benchmark timings; these are stated rather
+than hidden.
