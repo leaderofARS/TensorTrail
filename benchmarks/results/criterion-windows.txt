@@ -1,0 +1,424 @@
+   Compiling tensortrail-core v0.1.0 (C:\Users\Asus\Documents\GitHub\TensorTrail\native\tensortrail-core)
+    Finished `bench` profile [optimized] target(s) in 32.08s
+     Running benches\metrics.rs (target\release\deps\metrics-6884891bd8f682bc.exe)
+Gnuplot not found, using plotters backend
+Benchmarking individual/mae/sequential/1000
+Benchmarking individual/mae/sequential/1000: Warming up for 300.00 ms
+Benchmarking individual/mae/sequential/1000: Collecting 10 samples in estimated 1.0001 s (510k iterations)
+Benchmarking individual/mae/sequential/1000: Analyzing
+individual/mae/sequential/1000
+                        time:   [1.9370 µs 1.9618 µs 1.9886 µs]
+                        thrpt:  [502.87 Melem/s 509.72 Melem/s 516.26 Melem/s]
+                 change:
+                        time:   [−13.363% −8.7324% −4.0869%] (p = 0.00 < 0.05)
+                        thrpt:  [+4.2611% +9.5679% +15.424%]
+                        Performance has improved.
+Benchmarking individual/mae/parallel/1000
+Benchmarking individual/mae/parallel/1000: Warming up for 300.00 ms
+Benchmarking individual/mae/parallel/1000: Collecting 10 samples in estimated 1.0001 s (496k iterations)
+Benchmarking individual/mae/parallel/1000: Analyzing
+individual/mae/parallel/1000
+                        time:   [1.9555 µs 1.9790 µs 2.0011 µs]
+                        thrpt:  [499.73 Melem/s 505.30 Melem/s 511.39 Melem/s]
+                 change:
+                        time:   [+0.9738% +2.7958% +4.8875%] (p = 0.01 < 0.05)
+                        thrpt:  [−4.6597% −2.7198% −0.9644%]
+                        Change within noise threshold.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking individual/mse/parallel/1000
+Benchmarking individual/mse/parallel/1000: Warming up for 300.00 ms
+Benchmarking individual/mse/parallel/1000: Collecting 10 samples in estimated 1.0001 s (470k iterations)
+Benchmarking individual/mse/parallel/1000: Analyzing
+individual/mse/parallel/1000
+                        time:   [1.9773 µs 1.9947 µs 2.0109 µs]
+                        thrpt:  [497.30 Melem/s 501.33 Melem/s 505.74 Melem/s]
+                 change:
+                        time:   [−3.0082% −1.6490% −0.2757%] (p = 0.04 < 0.05)
+                        thrpt:  [+0.2765% +1.6766% +3.1015%]
+                        Change within noise threshold.
+Benchmarking individual/rmse/parallel/1000
+Benchmarking individual/rmse/parallel/1000: Warming up for 300.00 ms
+Benchmarking individual/rmse/parallel/1000: Collecting 10 samples in estimated 1.0002 s (335k iterations)
+Benchmarking individual/rmse/parallel/1000: Analyzing
+individual/rmse/parallel/1000
+                        time:   [2.2372 µs 2.4857 µs 2.9179 µs]
+                        thrpt:  [342.71 Melem/s 402.30 Melem/s 447.00 Melem/s]
+                 change:
+                        time:   [+24.131% +37.472% +51.914%] (p = 0.00 < 0.05)
+                        thrpt:  [−34.173% −27.258% −19.440%]
+                        Performance has regressed.
+Benchmarking individual/relative/parallel/1000
+Benchmarking individual/relative/parallel/1000: Warming up for 300.00 ms
+Benchmarking individual/relative/parallel/1000: Collecting 10 samples in estimated 1.0002 s (296k iterations)
+Benchmarking individual/relative/parallel/1000: Analyzing
+individual/relative/parallel/1000
+                        time:   [3.0017 µs 3.0118 µs 3.0293 µs]
+                        thrpt:  [330.11 Melem/s 332.03 Melem/s 333.15 Melem/s]
+                 change:
+                        time:   [+4.6171% +6.1171% +7.4686%] (p = 0.00 < 0.05)
+                        thrpt:  [−6.9496% −5.7645% −4.4133%]
+                        Performance has regressed.
+Benchmarking individual/cosine/parallel/1000
+Benchmarking individual/cosine/parallel/1000: Warming up for 300.00 ms
+Benchmarking individual/cosine/parallel/1000: Collecting 10 samples in estimated 1.0000 s (208k iterations)
+Benchmarking individual/cosine/parallel/1000: Analyzing
+individual/cosine/parallel/1000
+                        time:   [3.7577 µs 3.8968 µs 4.1821 µs]
+                        thrpt:  [239.11 Melem/s 256.62 Melem/s 266.12 Melem/s]
+                 change:
+                        time:   [+6.8500% +15.340% +27.529%] (p = 0.00 < 0.05)
+                        thrpt:  [−21.586% −13.300% −6.4109%]
+                        Performance has regressed.
+Benchmarking individual/statistics/parallel/1000
+Benchmarking individual/statistics/parallel/1000: Warming up for 300.00 ms
+Benchmarking individual/statistics/parallel/1000: Collecting 10 samples in estimated 1.0004 s (100k iterations)
+Benchmarking individual/statistics/parallel/1000: Analyzing
+individual/statistics/parallel/1000
+                        time:   [8.1774 µs 8.2226 µs 8.2703 µs]
+                        thrpt:  [120.91 Melem/s 121.62 Melem/s 122.29 Melem/s]
+                 change:
+                        time:   [−1.5333% −0.5212% +0.4476%] (p = 0.34 > 0.05)
+                        thrpt:  [−0.4456% +0.5239% +1.5572%]
+                        No change in performance detected.
+Benchmarking individual/mae/sequential/100000
+Benchmarking individual/mae/sequential/100000: Warming up for 300.00 ms
+Benchmarking individual/mae/sequential/100000: Collecting 10 samples in estimated 1.0068 s (5060 iterations)
+Benchmarking individual/mae/sequential/100000: Analyzing
+individual/mae/sequential/100000
+                        time:   [192.12 µs 193.82 µs 195.13 µs]
+                        thrpt:  [512.49 Melem/s 515.93 Melem/s 520.52 Melem/s]
+                 change:
+                        time:   [−9.4539% −7.1032% −4.7842%] (p = 0.00 < 0.05)
+                        thrpt:  [+5.0246% +7.6463% +10.441%]
+                        Performance has improved.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking individual/mae/parallel/100000
+Benchmarking individual/mae/parallel/100000: Warming up for 300.00 ms
+Benchmarking individual/mae/parallel/100000: Collecting 10 samples in estimated 1.0040 s (4950 iterations)
+Benchmarking individual/mae/parallel/100000: Analyzing
+individual/mae/parallel/100000
+                        time:   [143.56 µs 147.87 µs 156.86 µs]
+                        thrpt:  [637.52 Melem/s 676.26 Melem/s 696.56 Melem/s]
+                 change:
+                        time:   [+10.582% +17.480% +26.260%] (p = 0.00 < 0.05)
+                        thrpt:  [−20.798% −14.879% −9.5697%]
+                        Performance has regressed.
+Benchmarking individual/mse/parallel/100000
+Benchmarking individual/mse/parallel/100000: Warming up for 300.00 ms
+Benchmarking individual/mse/parallel/100000: Collecting 10 samples in estimated 1.0047 s (5445 iterations)
+Benchmarking individual/mse/parallel/100000: Analyzing
+individual/mse/parallel/100000
+                        time:   [160.46 µs 165.42 µs 170.90 µs]
+                        thrpt:  [585.12 Melem/s 604.53 Melem/s 623.21 Melem/s]
+                 change:
+                        time:   [−0.9043% +8.5951% +18.466%] (p = 0.10 > 0.05)
+                        thrpt:  [−15.588% −7.9148% +0.9126%]
+                        No change in performance detected.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Benchmarking individual/rmse/parallel/100000
+Benchmarking individual/rmse/parallel/100000: Warming up for 300.00 ms
+Benchmarking individual/rmse/parallel/100000: Collecting 10 samples in estimated 1.0076 s (4950 iterations)
+Benchmarking individual/rmse/parallel/100000: Analyzing
+individual/rmse/parallel/100000
+                        time:   [194.46 µs 202.30 µs 210.28 µs]
+                        thrpt:  [475.55 Melem/s 494.32 Melem/s 514.25 Melem/s]
+                 change:
+                        time:   [+19.347% +31.397% +43.786%] (p = 0.00 < 0.05)
+                        thrpt:  [−30.452% −23.895% −16.211%]
+                        Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Benchmarking individual/relative/parallel/100000
+Benchmarking individual/relative/parallel/100000: Warming up for 300.00 ms
+Benchmarking individual/relative/parallel/100000: Collecting 10 samples in estimated 1.0111 s (4950 iterations)
+Benchmarking individual/relative/parallel/100000: Analyzing
+individual/relative/parallel/100000
+                        time:   [177.42 µs 183.68 µs 194.01 µs]
+                        thrpt:  [515.42 Melem/s 544.42 Melem/s 563.63 Melem/s]
+                 change:
+                        time:   [−7.8109% +0.8919% +9.7947%] (p = 0.86 > 0.05)
+                        thrpt:  [−8.9210% −0.8840% +8.4727%]
+                        No change in performance detected.
+Found 2 outliers among 10 measurements (20.00%)
+  2 (20.00%) high mild
+Benchmarking individual/cosine/parallel/100000
+Benchmarking individual/cosine/parallel/100000: Warming up for 300.00 ms
+Benchmarking individual/cosine/parallel/100000: Collecting 10 samples in estimated 1.0066 s (4015 iterations)
+Benchmarking individual/cosine/parallel/100000: Analyzing
+individual/cosine/parallel/100000
+                        time:   [213.34 µs 245.83 µs 268.40 µs]
+                        thrpt:  [372.58 Melem/s 406.79 Melem/s 468.73 Melem/s]
+                 change:
+                        time:   [+9.2396% +19.897% +32.873%] (p = 0.00 < 0.05)
+                        thrpt:  [−24.740% −16.595% −8.4581%]
+                        Performance has regressed.
+Benchmarking individual/statistics/parallel/100000
+Benchmarking individual/statistics/parallel/100000: Warming up for 300.00 ms
+Benchmarking individual/statistics/parallel/100000: Collecting 10 samples in estimated 1.0158 s (2475 iterations)
+Benchmarking individual/statistics/parallel/100000: Analyzing
+individual/statistics/parallel/100000
+                        time:   [329.02 µs 336.77 µs 343.23 µs]
+                        thrpt:  [291.35 Melem/s 296.94 Melem/s 303.94 Melem/s]
+                 change:
+                        time:   [−3.6837% +1.3666% +6.4898%] (p = 0.64 > 0.05)
+                        thrpt:  [−6.0943% −1.3481% +3.8246%]
+                        No change in performance detected.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking individual/mae/sequential/1000000
+Benchmarking individual/mae/sequential/1000000: Warming up for 300.00 ms
+Benchmarking individual/mae/sequential/1000000: Collecting 10 samples in estimated 1.0395 s (495 iterations)
+Benchmarking individual/mae/sequential/1000000: Analyzing
+individual/mae/sequential/1000000
+                        time:   [1.9424 ms 2.0021 ms 2.0621 ms]
+                        thrpt:  [484.93 Melem/s 499.49 Melem/s 514.82 Melem/s]
+                 change:
+                        time:   [−5.1084% −2.4266% +0.1942%] (p = 0.13 > 0.05)
+                        thrpt:  [−0.1938% +2.4870% +5.3834%]
+                        No change in performance detected.
+Found 2 outliers among 10 measurements (20.00%)
+  2 (20.00%) high mild
+Benchmarking individual/mae/parallel/1000000
+Benchmarking individual/mae/parallel/1000000: Warming up for 300.00 ms
+Benchmarking individual/mae/parallel/1000000: Collecting 10 samples in estimated 1.0203 s (1870 iterations)
+Benchmarking individual/mae/parallel/1000000: Analyzing
+individual/mae/parallel/1000000
+                        time:   [532.41 µs 542.30 µs 561.75 µs]
+                        thrpt:  [1.7802 Gelem/s 1.8440 Gelem/s 1.8782 Gelem/s]
+                 change:
+                        time:   [+18.174% +23.353% +28.464%] (p = 0.00 < 0.05)
+                        thrpt:  [−22.157% −18.932% −15.379%]
+                        Performance has regressed.
+Benchmarking individual/mse/parallel/1000000
+Benchmarking individual/mse/parallel/1000000: Warming up for 300.00 ms
+Benchmarking individual/mse/parallel/1000000: Collecting 10 samples in estimated 1.0345 s (1540 iterations)
+Benchmarking individual/mse/parallel/1000000: Analyzing
+individual/mse/parallel/1000000
+                        time:   [573.44 µs 579.00 µs 584.35 µs]
+                        thrpt:  [1.7113 Gelem/s 1.7271 Gelem/s 1.7439 Gelem/s]
+                 change:
+                        time:   [−21.894% −13.584% −4.3380%] (p = 0.01 < 0.05)
+                        thrpt:  [+4.5347% +15.720% +28.030%]
+                        Performance has improved.
+Found 2 outliers among 10 measurements (20.00%)
+  1 (10.00%) high mild
+  1 (10.00%) high severe
+Benchmarking individual/rmse/parallel/1000000
+Benchmarking individual/rmse/parallel/1000000: Warming up for 300.00 ms
+Benchmarking individual/rmse/parallel/1000000: Collecting 10 samples in estimated 1.0212 s (1705 iterations)
+Benchmarking individual/rmse/parallel/1000000: Analyzing
+individual/rmse/parallel/1000000
+                        time:   [578.58 µs 588.16 µs 595.40 µs]
+                        thrpt:  [1.6796 Gelem/s 1.7002 Gelem/s 1.7284 Gelem/s]
+                 change:
+                        time:   [−7.7617% −3.0114% +1.1884%] (p = 0.26 > 0.05)
+                        thrpt:  [−1.1744% +3.1049% +8.4148%]
+                        No change in performance detected.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) low mild
+Benchmarking individual/relative/parallel/1000000
+Benchmarking individual/relative/parallel/1000000: Warming up for 300.00 ms
+Benchmarking individual/relative/parallel/1000000: Collecting 10 samples in estimated 1.0328 s (1210 iterations)
+Benchmarking individual/relative/parallel/1000000: Analyzing
+individual/relative/parallel/1000000
+                        time:   [818.70 µs 842.51 µs 863.57 µs]
+                        thrpt:  [1.1580 Gelem/s 1.1869 Gelem/s 1.2215 Gelem/s]
+                 change:
+                        time:   [+5.1444% +11.239% +17.975%] (p = 0.00 < 0.05)
+                        thrpt:  [−15.237% −10.103% −4.8927%]
+                        Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Benchmarking individual/cosine/parallel/1000000
+Benchmarking individual/cosine/parallel/1000000: Warming up for 300.00 ms
+Benchmarking individual/cosine/parallel/1000000: Collecting 10 samples in estimated 1.0238 s (935 iterations)
+Benchmarking individual/cosine/parallel/1000000: Analyzing
+individual/cosine/parallel/1000000
+                        time:   [959.55 µs 972.84 µs 992.21 µs]
+                        thrpt:  [1.0079 Gelem/s 1.0279 Gelem/s 1.0422 Gelem/s]
+                 change:
+                        time:   [+27.306% +32.071% +36.642%] (p = 0.00 < 0.05)
+                        thrpt:  [−26.816% −24.283% −21.449%]
+                        Performance has regressed.
+Benchmarking individual/statistics/parallel/1000000
+Benchmarking individual/statistics/parallel/1000000: Warming up for 300.00 ms
+Benchmarking individual/statistics/parallel/1000000: Collecting 10 samples in estimated 1.0289 s (770 iterations)
+Benchmarking individual/statistics/parallel/1000000: Analyzing
+individual/statistics/parallel/1000000
+                        time:   [1.5245 ms 1.6894 ms 1.8468 ms]
+                        thrpt:  [541.48 Melem/s 591.94 Melem/s 655.94 Melem/s]
+                 change:
+                        time:   [+70.208% +82.692% +96.245%] (p = 0.00 < 0.05)
+                        thrpt:  [−49.043% −45.263% −41.248%]
+                        Performance has regressed.
+
+Benchmarking fused/sequential/1000
+Benchmarking fused/sequential/1000: Warming up for 300.00 ms
+Benchmarking fused/sequential/1000: Collecting 10 samples in estimated 1.0014 s (30k iterations)
+Benchmarking fused/sequential/1000: Analyzing
+fused/sequential/1000   time:   [31.502 µs 36.174 µs 42.069 µs]
+                        thrpt:  [23.770 Melem/s 27.644 Melem/s 31.744 Melem/s]
+                 change:
+                        time:   [+167.26% +197.72% +225.47%] (p = 0.00 < 0.05)
+                        thrpt:  [−69.275% −66.412% −62.584%]
+                        Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Benchmarking fused/parallel/1000
+Benchmarking fused/parallel/1000: Warming up for 300.00 ms
+Benchmarking fused/parallel/1000: Collecting 10 samples in estimated 1.0006 s (39k iterations)
+Benchmarking fused/parallel/1000: Analyzing
+fused/parallel/1000     time:   [24.843 µs 26.515 µs 29.270 µs]
+                        thrpt:  [34.164 Melem/s 37.714 Melem/s 40.253 Melem/s]
+                 change:
+                        time:   [+106.70% +126.23% +149.89%] (p = 0.00 < 0.05)
+                        thrpt:  [−59.982% −55.797% −51.620%]
+                        Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking fused/parallel_binary_only/1000
+Benchmarking fused/parallel_binary_only/1000: Warming up for 300.00 ms
+Benchmarking fused/parallel_binary_only/1000: Collecting 10 samples in estimated 1.0008 s (48k iterations)
+Benchmarking fused/parallel_binary_only/1000: Analyzing
+fused/parallel_binary_only/1000
+                        time:   [14.433 µs 14.814 µs 15.230 µs]
+                        thrpt:  [65.660 Melem/s 67.506 Melem/s 69.287 Melem/s]
+                 change:
+                        time:   [+95.074% +106.32% +118.63%] (p = 0.00 < 0.05)
+                        thrpt:  [−54.261% −51.531% −48.737%]
+                        Performance has regressed.
+Benchmarking fused/sequential/100000
+Benchmarking fused/sequential/100000: Warming up for 300.00 ms
+Benchmarking fused/sequential/100000: Collecting 10 samples in estimated 1.1153 s (385 iterations)
+Benchmarking fused/sequential/100000: Analyzing
+fused/sequential/100000 time:   [2.0949 ms 2.3306 ms 2.7808 ms]
+                        thrpt:  [35.961 Melem/s 42.907 Melem/s 47.736 Melem/s]
+                 change:
+                        time:   [+88.471% +113.09% +136.76%] (p = 0.00 < 0.05)
+                        thrpt:  [−57.763% −53.072% −46.942%]
+                        Performance has regressed.
+Benchmarking fused/parallel/100000
+Benchmarking fused/parallel/100000: Warming up for 300.00 ms
+Benchmarking fused/parallel/100000: Collecting 10 samples in estimated 1.0354 s (495 iterations)
+Benchmarking fused/parallel/100000: Analyzing
+fused/parallel/100000   time:   [1.1652 ms 1.2486 ms 1.3731 ms]
+                        thrpt:  [72.830 Melem/s 80.091 Melem/s 85.822 Melem/s]
+                 change:
+                        time:   [+93.803% +120.14% +147.83%] (p = 0.00 < 0.05)
+                        thrpt:  [−59.650% −54.574% −48.401%]
+                        Performance has regressed.
+Benchmarking fused/parallel_binary_only/100000
+Benchmarking fused/parallel_binary_only/100000: Warming up for 300.00 ms
+Benchmarking fused/parallel_binary_only/100000: Collecting 10 samples in estimated 1.1132 s (220 iterations)
+Benchmarking fused/parallel_binary_only/100000: Analyzing
+fused/parallel_binary_only/100000
+                        time:   [1.4919 ms 1.9824 ms 2.8360 ms]
+                        thrpt:  [35.261 Melem/s 50.445 Melem/s 67.027 Melem/s]
+                 change:
+                        time:   [+478.77% +684.89% +914.12%] (p = 0.00 < 0.05)
+                        thrpt:  [−90.139% −87.259% −82.722%]
+                        Performance has regressed.
+Benchmarking fused/sequential/1000000
+Benchmarking fused/sequential/1000000: Warming up for 300.00 ms
+Benchmarking fused/sequential/1000000: Collecting 10 samples in estimated 1.0568 s (20 iterations)
+Benchmarking fused/sequential/1000000: Analyzing
+fused/sequential/1000000
+                        time:   [45.420 ms 51.235 ms 57.160 ms]
+                        thrpt:  [17.495 Melem/s 19.518 Melem/s 22.017 Melem/s]
+                 change:
+                        time:   [+251.42% +294.52% +346.89%] (p = 0.00 < 0.05)
+                        thrpt:  [−77.623% −74.653% −71.544%]
+                        Performance has regressed.
+Benchmarking fused/parallel/1000000
+Benchmarking fused/parallel/1000000: Warming up for 300.00 ms
+Benchmarking fused/parallel/1000000: Collecting 10 samples in estimated 1.0949 s (110 iterations)
+Benchmarking fused/parallel/1000000: Analyzing
+fused/parallel/1000000  time:   [4.7007 ms 4.8865 ms 5.3062 ms]
+                        thrpt:  [188.46 Melem/s 204.65 Melem/s 212.73 Melem/s]
+                 change:
+                        time:   [+90.786% +123.61% +168.45%] (p = 0.00 < 0.05)
+                        thrpt:  [−62.749% −55.279% −47.585%]
+                        Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking fused/parallel_binary_only/1000000
+Benchmarking fused/parallel_binary_only/1000000: Warming up for 300.00 ms
+Benchmarking fused/parallel_binary_only/1000000: Collecting 10 samples in estimated 1.0264 s (495 iterations)
+Benchmarking fused/parallel_binary_only/1000000: Analyzing
+fused/parallel_binary_only/1000000
+                        time:   [2.6110 ms 2.8819 ms 2.9993 ms]
+                        thrpt:  [333.42 Melem/s 346.99 Melem/s 382.99 Melem/s]
+                 change:
+                        time:   [+23.003% +36.825% +51.618%] (p = 0.00 < 0.05)
+                        thrpt:  [−34.045% −26.914% −18.701%]
+                        Performance has regressed.
+
+Benchmarking passes/separate_all/100000
+Benchmarking passes/separate_all/100000: Warming up for 300.00 ms
+Benchmarking passes/separate_all/100000: Collecting 10 samples in estimated 1.0431 s (660 iterations)
+Benchmarking passes/separate_all/100000: Analyzing
+passes/separate_all/100000
+                        time:   [1.4915 ms 1.5638 ms 1.6781 ms]
+                        thrpt:  [59.591 Melem/s 63.947 Melem/s 67.047 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Benchmarking passes/fused_all/100000
+Benchmarking passes/fused_all/100000: Warming up for 300.00 ms
+Benchmarking passes/fused_all/100000: Collecting 10 samples in estimated 1.0488 s (1045 iterations)
+Benchmarking passes/fused_all/100000: Analyzing
+passes/fused_all/100000 time:   [819.53 µs 1.0398 ms 1.3410 ms]
+                        thrpt:  [74.572 Melem/s 96.176 Melem/s 122.02 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking passes/separate_all_with_statistics/100000
+Benchmarking passes/separate_all_with_statistics/100000: Warming up for 300.00 ms
+Benchmarking passes/separate_all_with_statistics/100000: Collecting 10 samples in estimated 1.1176 s (220 iterations)
+Benchmarking passes/separate_all_with_statistics/100000: Analyzing
+passes/separate_all_with_statistics/100000
+                        time:   [2.2169 ms 2.3045 ms 2.4194 ms]
+                        thrpt:  [41.333 Melem/s 43.393 Melem/s 45.108 Melem/s]
+Benchmarking passes/fused_all_with_statistics/100000
+Benchmarking passes/fused_all_with_statistics/100000: Warming up for 300.00 ms
+Benchmarking passes/fused_all_with_statistics/100000: Collecting 10 samples in estimated 1.0273 s (770 iterations)
+Benchmarking passes/fused_all_with_statistics/100000: Analyzing
+passes/fused_all_with_statistics/100000
+                        time:   [1.1037 ms 1.1741 ms 1.2218 ms]
+                        thrpt:  [81.848 Melem/s 85.173 Melem/s 90.608 Melem/s]
+Benchmarking passes/separate_all/1000000
+Benchmarking passes/separate_all/1000000: Warming up for 300.00 ms
+Benchmarking passes/separate_all/1000000: Collecting 10 samples in estimated 1.0659 s (330 iterations)
+Benchmarking passes/separate_all/1000000: Analyzing
+passes/separate_all/1000000
+                        time:   [3.3547 ms 3.6710 ms 4.0408 ms]
+                        thrpt:  [247.48 Melem/s 272.41 Melem/s 298.09 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking passes/fused_all/1000000
+Benchmarking passes/fused_all/1000000: Warming up for 300.00 ms
+Benchmarking passes/fused_all/1000000: Collecting 10 samples in estimated 1.1149 s (440 iterations)
+Benchmarking passes/fused_all/1000000: Analyzing
+passes/fused_all/1000000
+                        time:   [2.4306 ms 2.6761 ms 3.0429 ms]
+                        thrpt:  [328.63 Melem/s 373.68 Melem/s 411.42 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking passes/separate_all_with_statistics/1000000
+Benchmarking passes/separate_all_with_statistics/1000000: Warming up for 300.00 ms
+Benchmarking passes/separate_all_with_statistics/1000000: Collecting 10 samples in estimated 1.3316 s (220 iterations)
+Benchmarking passes/separate_all_with_statistics/1000000: Analyzing
+passes/separate_all_with_statistics/1000000
+                        time:   [5.3721 ms 5.4632 ms 5.5820 ms]
+                        thrpt:  [179.15 Melem/s 183.04 Melem/s 186.15 Melem/s]
+Benchmarking passes/fused_all_with_statistics/1000000
+Benchmarking passes/fused_all_with_statistics/1000000: Warming up for 300.00 ms
+Benchmarking passes/fused_all_with_statistics/1000000: Collecting 10 samples in estimated 1.1049 s (330 iterations)
+Benchmarking passes/fused_all_with_statistics/1000000: Analyzing
+passes/fused_all_with_statistics/1000000
+                        time:   [2.9810 ms 3.2434 ms 3.7590 ms]
+                        thrpt:  [266.03 Melem/s 308.32 Melem/s 335.46 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+

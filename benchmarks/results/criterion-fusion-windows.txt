@@ -1,0 +1,106 @@
+    Finished `bench` profile [optimized] target(s) in 0.83s
+     Running benches\metrics.rs (target\release\deps\metrics-6884891bd8f682bc.exe)
+Gnuplot not found, using plotters backend
+Benchmarking passes/separate_all/100000
+Benchmarking passes/separate_all/100000: Warming up for 500.00 ms
+Benchmarking passes/separate_all/100000: Collecting 20 samples in estimated 2.2611 s (1470 iterations)
+Benchmarking passes/separate_all/100000: Analyzing
+passes/separate_all/100000
+                        time:   [1.2890 ms 1.3528 ms 1.4380 ms]
+                        thrpt:  [69.539 Melem/s 73.918 Melem/s 77.579 Melem/s]
+                 change:
+                        time:   [−19.464% −14.143% −9.1510%] (p = 0.00 < 0.05)
+                        thrpt:  [+10.073% +16.473% +24.168%]
+                        Performance has improved.
+Found 2 outliers among 20 measurements (10.00%)
+  2 (10.00%) high mild
+Benchmarking passes/fused_all/100000
+Benchmarking passes/fused_all/100000: Warming up for 500.00 ms
+Benchmarking passes/fused_all/100000: Collecting 20 samples in estimated 2.0646 s (1890 iterations)
+Benchmarking passes/fused_all/100000: Analyzing
+passes/fused_all/100000 time:   [836.74 µs 888.06 µs 934.37 µs]
+                        thrpt:  [107.02 Melem/s 112.61 Melem/s 119.51 Melem/s]
+                 change:
+                        time:   [−26.834% −13.635% −1.0361%] (p = 0.08 > 0.05)
+                        thrpt:  [+1.0469% +15.788% +36.675%]
+                        No change in performance detected.
+Benchmarking passes/separate_all_with_statistics/100000
+Benchmarking passes/separate_all_with_statistics/100000: Warming up for 500.00 ms
+Benchmarking passes/separate_all_with_statistics/100000: Collecting 20 samples in estimated 2.9821 s (630 iterations)
+Benchmarking passes/separate_all_with_statistics/100000: Analyzing
+passes/separate_all_with_statistics/100000
+                        time:   [2.5026 ms 2.7016 ms 2.8608 ms]
+                        thrpt:  [34.955 Melem/s 37.015 Melem/s 39.959 Melem/s]
+                 change:
+                        time:   [−6.4299% +1.3579% +10.331%] (p = 0.78 > 0.05)
+                        thrpt:  [−9.3634% −1.3397% +6.8717%]
+                        No change in performance detected.
+Found 2 outliers among 20 measurements (10.00%)
+  2 (10.00%) high mild
+Benchmarking passes/fused_all_with_statistics/100000
+Benchmarking passes/fused_all_with_statistics/100000: Warming up for 500.00 ms
+Benchmarking passes/fused_all_with_statistics/100000: Collecting 20 samples in estimated 2.0570 s (1470 iterations)
+Benchmarking passes/fused_all_with_statistics/100000: Analyzing
+passes/fused_all_with_statistics/100000
+                        time:   [1.4979 ms 1.6058 ms 1.7420 ms]
+                        thrpt:  [57.407 Melem/s 62.274 Melem/s 66.761 Melem/s]
+                 change:
+                        time:   [+28.103% +37.913% +47.399%] (p = 0.00 < 0.05)
+                        thrpt:  [−32.157% −27.491% −21.938%]
+                        Performance has regressed.
+Benchmarking passes/separate_all/1000000
+Benchmarking passes/separate_all/1000000: Warming up for 500.00 ms
+Benchmarking passes/separate_all/1000000: Collecting 20 samples in estimated 2.2657 s (420 iterations)
+Benchmarking passes/separate_all/1000000: Analyzing
+passes/separate_all/1000000
+                        time:   [4.8319 ms 5.5484 ms 6.3183 ms]
+                        thrpt:  [158.27 Melem/s 180.23 Melem/s 206.96 Melem/s]
+                 change:
+                        time:   [+24.000% +36.391% +54.013%] (p = 0.00 < 0.05)
+                        thrpt:  [−35.070% −26.681% −19.355%]
+                        Performance has regressed.
+Found 2 outliers among 20 measurements (10.00%)
+  1 (5.00%) high mild
+  1 (5.00%) high severe
+Benchmarking passes/fused_all/1000000
+Benchmarking passes/fused_all/1000000: Warming up for 500.00 ms
+Benchmarking passes/fused_all/1000000: Collecting 20 samples in estimated 2.6273 s (630 iterations)
+Benchmarking passes/fused_all/1000000: Analyzing
+passes/fused_all/1000000
+                        time:   [3.6344 ms 4.0177 ms 4.3761 ms]
+                        thrpt:  [228.51 Melem/s 248.90 Melem/s 275.15 Melem/s]
+                 change:
+                        time:   [+36.791% +50.348% +65.777%] (p = 0.00 < 0.05)
+                        thrpt:  [−39.678% −33.488% −26.896%]
+                        Performance has regressed.
+Found 2 outliers among 20 measurements (10.00%)
+  1 (5.00%) high mild
+  1 (5.00%) high severe
+Benchmarking passes/separate_all_with_statistics/1000000
+Benchmarking passes/separate_all_with_statistics/1000000: Warming up for 500.00 ms
+Benchmarking passes/separate_all_with_statistics/1000000: Collecting 20 samples in estimated 3.6680 s (420 iterations)
+Benchmarking passes/separate_all_with_statistics/1000000: Analyzing
+passes/separate_all_with_statistics/1000000
+                        time:   [7.7698 ms 8.4791 ms 9.2601 ms]
+                        thrpt:  [107.99 Melem/s 117.94 Melem/s 128.70 Melem/s]
+                 change:
+                        time:   [+46.722% +61.132% +81.957%] (p = 0.00 < 0.05)
+                        thrpt:  [−45.042% −37.939% −31.844%]
+                        Performance has regressed.
+Found 1 outliers among 20 measurements (5.00%)
+  1 (5.00%) high severe
+Benchmarking passes/fused_all_with_statistics/1000000
+Benchmarking passes/fused_all_with_statistics/1000000: Warming up for 500.00 ms
+Benchmarking passes/fused_all_with_statistics/1000000: Collecting 20 samples in estimated 2.5507 s (420 iterations)
+Benchmarking passes/fused_all_with_statistics/1000000: Analyzing
+passes/fused_all_with_statistics/1000000
+                        time:   [4.0885 ms 4.2483 ms 4.4716 ms]
+                        thrpt:  [223.63 Melem/s 235.39 Melem/s 244.59 Melem/s]
+                 change:
+                        time:   [+14.090% +28.260% +40.721%] (p = 0.00 < 0.05)
+                        thrpt:  [−28.937% −22.033% −12.350%]
+                        Performance has regressed.
+Found 2 outliers among 20 measurements (10.00%)
+  1 (5.00%) high mild
+  1 (5.00%) high severe
+

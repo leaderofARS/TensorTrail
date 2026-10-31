@@ -1,0 +1,36 @@
+# Build artifacts
+target/
+native/tensortrail-core/target/
+dist/
+build/
+wheels/
+*.so
+*.pyd
+*.dylib
+*.egg-info/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+*.prof
+
+# Local reports and screenshots
+screenshots/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Local developer configuration
+.env
+.env.*

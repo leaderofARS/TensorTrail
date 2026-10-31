@@ -1,0 +1,30 @@
+[package]
+name = "tensortrail-core"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+description = "Native numerical comparison engine for TensorTrail"
+license = "Apache-2.0"
+repository = "https://github.com/leaderofARS/tensortrail"
+publish = false
+
+[lib]
+name = "tensortrail_core"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+python = ["dep:pyo3", "dep:numpy"]
+extension-module = ["python", "pyo3/extension-module"]
+
+[dependencies]
+numpy = { version = "0.30", optional = true }
+pyo3 = { version = "0.30", optional = true }
+rayon = "1.12"
+
+[dev-dependencies]
+criterion = "0.8"
+
+[[bench]]
+name = "metrics"
+harness = false
