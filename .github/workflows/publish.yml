@@ -1,0 +1,143 @@
+name: Publish TensorTrail
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "build-only validates; testpypi or pypi uploads"
+        required: true
+        default: build-only
+        type: choice
+        options:
+          - build-only
+          - testpypi
+          - pypi
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and validate distributions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "maturin>=1.16,<2.0" twine "numpy>=1.24"
+      - name: Verify version and release tag
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+          import re
+          import tomllib
+
+          root = pathlib.Path(".")
+          pyproject = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+          cargo = tomllib.loads(
+              (root / "native/tensortrail-core/Cargo.toml").read_text(encoding="utf-8")
+          )
+          version = pyproject["project"]["version"]
+          cargo_version = cargo["package"]["version"]
+          version_text = (root / "python/tensortrail/_version.py").read_text(encoding="utf-8")
+          match = re.search(r'^__version__\s*=\s*"([^"]+)"', version_text, re.MULTILINE)
+          if match is None:
+              raise SystemExit("python/tensortrail/_version.py does not define __version__")
+          python_version = match.group(1)
+          if not version == cargo_version == python_version:
+              raise SystemExit(
+                  "version mismatch: "
+                  f"pyproject={version}, Cargo={cargo_version}, Python={python_version}"
+              )
+          if os.environ["EVENT_NAME"] == "release" or os.environ.get("TARGET") == "pypi":
+              tag = os.environ["REF_NAME"]
+              if tag != f"v{version}":
+                  raise SystemExit(
+                      f"tag {tag!r} does not match version v{version}; "
+                      "production publication must run from the release tag"
+                  )
+          print(f"version={version}")
+          PY
+      - name: Build wheel and sdist
+        run: maturin build --release --sdist --out dist
+      - name: Validate metadata
+        run: python -m twine check dist/*
+      - name: Install the built wheel and smoke test
+        run: |
+          python -m pip install --no-deps --force-reinstall dist/*.whl
+          python -c "
+          import numpy as np
+          import tensortrail as tt
+
+          reference = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+          candidate = np.array([1.0, 4.0, 2.0, 8.0], dtype=np.float32)
+          report = tt.compare(reference, candidate)
+          assert report.metrics.mae == 1.75
+          assert report.status == 'fail'
+          assert report.metadata.backend == 'rust'
+          print(tt.__version__, report.summary())
+          "
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tensortrail-dist
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-testpypi:
+    name: Publish to TestPyPI
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: tensortrail-dist
+          path: dist
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist
+          print-hash: true
+
+  publish-pypi:
+    name: Publish to PyPI
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: tensortrail-dist
+          path: dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          print-hash: true

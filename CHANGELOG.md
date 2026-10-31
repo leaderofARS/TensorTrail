@@ -57,6 +57,9 @@ not included; see [Scope and non-goals](README.md#scope-and-non-goals).
   matrix, and wheel/sdist packaging smoke tests.
 - Apache-2.0 license, `py.typed`, Maturin build configuration, wheel and sdist
   build support.
+- Separate OIDC-based GitHub Actions publishing workflow for TestPyPI and PyPI,
+  with version/tag checks, a build-only validation path, and wheel smoke testing
+  before upload.
 
 ### Known limitations
 

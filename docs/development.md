@@ -213,8 +213,10 @@ stable ABI), so one wheel per OS/architecture/Python version is expected.
   3.14, building the extension before testing;
 - an sdist/wheel build with metadata checks and a clean-install smoke test.
 
-CI never publishes packages. Publishing a release to PyPI or anywhere else is a
-separate, explicitly authorized action.
+CI never publishes packages. Publication uses the separate
+[`publish.yml`](../.github/workflows/publish.yml) workflow, described in
+[publishing.md](publishing.md), which runs only for a published GitHub release or
+an explicit manual dispatch and authenticates through PyPI Trusted Publishing.
 
 ## Versioning and release checklist
 
@@ -236,7 +238,8 @@ Checklist:
 4. Build the wheel and sdist; inspect their contents.
 5. Install the wheel into a clean environment and run the smoke test.
 6. Update affected documentation and the engineering report.
-7. Tag only after the checks above pass. Publication requires separate approval.
+7. Tag only after the checks above pass. Publication requires separate approval;
+   see [publishing.md](publishing.md).
 
 ## Troubleshooting
 

@@ -58,6 +58,7 @@ Not verified by direct local execution:
 | Reports | Immutable typed objects, summary text, strict JSON, self-contained HTML, atomic writes | Verified |
 | Packaging | Maturin wheel/sdist, `py.typed`, Apache-2.0 license, SBOM in wheel | Verified |
 | CI | Rust, lint/type, OS/Python matrix, NumPy floor, packaging jobs | Verified on GitHub Actions |
+| Release publishing | Separate `publish.yml`, OIDC trusted publishing, version/tag checks, TestPyPI and PyPI targets | Configured; upload not executed |
 
 ## 3. Architecture
 
@@ -271,7 +272,21 @@ Methodology and caveats: [benchmarking.md](benchmarking.md). Raw data:
 The commands were executed locally as described above. The workflow also ran on
 GitHub Actions for the public repository: all jobs passed, including the
 Linux/macOS/Windows matrix for Python 3.11–3.14, the NumPy floor job, and the
-packaging job. No publication step exists in CI.
+packaging job. CI itself never publishes.
+
+### Release publishing
+
+`.github/workflows/publish.yml` is a separate workflow with two triggers: a
+published GitHub release, or a manual dispatch targeting `build-only`,
+`testpypi`, or `pypi`. It builds on Ubuntu, verifies that the three version
+declarations agree, requires a release tag to equal `v<version>`, installs the
+built wheel, runs a native-backend smoke test, and runs `twine check`. It then
+publishes with PyPI Trusted Publishing (`id-token: write`). The build job has a
+`build-only` path for validation without upload, and the publish jobs download
+the validated artifact rather than rebuilding it.
+
+At the time of this report, publisher-side configuration and package-index
+uploads remain outstanding; the workflow's upload jobs have not run.
 
 ## 6. Release readiness
 
@@ -286,8 +301,10 @@ Satisfied for the scoped 0.1.0 alpha:
 
 Outstanding before a public release:
 
+- authorized TestPyPI and PyPI publication, with matching trusted-publisher
+  entries for `publish.yml`;
 - a repository tag and release notes review;
-- a decision on supported wheel platforms and an authorized publication process;
+- a decision on expanding wheel coverage beyond the Linux release wheel;
 - optional longer benchmark runs on additional hardware.
 
 No package index publication has been performed. Doing so requires explicit
@@ -338,7 +355,7 @@ TensorTrail 0.1.0 delivers the requested numerical comparison engine and Python
 API without claiming GPU, capture, or SIMD capabilities it does not have. The
 numerical policy is explicit, the backends are cross-checked, the native failure
 path is enforced, and the package installs from both wheel and sdist. Hosted CI
-now passes on Linux, macOS, and Windows. The main remaining risks are release
-authorization and packaging for platforms beyond the current wheel matrix, plus
-the normal variability of parallel benchmark timings; these are stated rather
-than hidden.
+now passes on Linux, macOS, and Windows. A separate OIDC publishing workflow is
+configured, but no package-index upload has been performed. The main remaining
+risks are publisher configuration, platform wheel coverage, and the normal
+variability of parallel benchmark timings; these are stated rather than hidden.
