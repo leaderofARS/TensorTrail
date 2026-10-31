@@ -58,7 +58,7 @@ Not verified by direct local execution:
 | Reports | Immutable typed objects, summary text, strict JSON, self-contained HTML, atomic writes | Verified |
 | Packaging | Maturin wheel/sdist, `py.typed`, Apache-2.0 license, SBOM in wheel | Verified |
 | CI | Rust, lint/type, OS/Python matrix, NumPy floor, packaging jobs | Verified on GitHub Actions |
-| Release publishing | Separate `publish.yml`, OIDC trusted publishing, version/tag checks, TestPyPI and PyPI targets | Configured; upload not executed |
+| Release publishing | Separate `publish.yml`, OIDC trusted publishing, version/tag checks, TestPyPI and PyPI targets | Configured; build-only validated; upload not executed |
 
 ## 3. Architecture
 
@@ -285,8 +285,11 @@ publishes with PyPI Trusted Publishing (`id-token: write`). The build job has a
 `build-only` path for validation without upload, and the publish jobs download
 the validated artifact rather than rebuilding it.
 
-At the time of this report, publisher-side configuration and package-index
-uploads remain outstanding; the workflow's upload jobs have not run.
+A `build-only` dispatch was exercised on GitHub Actions for 0.1.0. The Ubuntu
+build job produced a CPython 3.13 `manylinux_2_34_x86_64` wheel and an sdist,
+installed the wheel, and passed the native-backend smoke test. The TestPyPI and
+PyPI publish jobs were skipped. Publisher-side configuration and package-index
+uploads remain outstanding.
 
 ## 6. Release readiness
 

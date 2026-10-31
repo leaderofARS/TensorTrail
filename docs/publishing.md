@@ -56,6 +56,13 @@ To validate the workflow without uploading:
 gh workflow run publish.yml -f target=build-only
 ```
 
+## Validation status
+
+The `build-only` target has been exercised on GitHub Actions for 0.1.0. The
+Ubuntu build produced a CPython 3.13 `manylinux_2_34_x86_64` wheel and an sdist,
+installed the wheel, and passed the native-backend smoke test. The TestPyPI and
+PyPI publish jobs were skipped. No package-index upload has been performed.
+
 ## TestPyPI validation
 
 Run the manual workflow first:
