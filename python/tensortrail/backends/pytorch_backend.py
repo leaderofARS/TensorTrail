@@ -17,7 +17,13 @@ from numpy.typing import NDArray
 
 from ..exceptions import BackendError, UnsupportedDtypeError
 
-__all__ = ["TorchConversion", "looks_like_torch_tensor", "torch_tensor_to_numpy"]
+__all__ = [
+    "TorchConversion",
+    "TorchDescription",
+    "describe_torch_tensor",
+    "looks_like_torch_tensor",
+    "torch_tensor_to_numpy",
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,10 +36,64 @@ class TorchConversion:
     notes: tuple[str, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class TorchDescription:
+    """Metadata read from a CPU PyTorch tensor without converting its payload."""
+
+    shape: tuple[int, ...]
+    dtype: str
+    nbytes: int
+    device: str
+
+
 def looks_like_torch_tensor(value: object) -> bool:
     """Detect torch tensors without importing torch for ordinary inputs."""
     module = type(value).__module__
     return module == "torch" or module.startswith("torch.")
+
+
+def describe_torch_tensor(value: object, role: str) -> TorchDescription | None:
+    """Describe a CPU tensor without copying or converting its payload.
+
+    Returns ``None`` when ``value`` is not a PyTorch tensor. Accelerator,
+    quantized, and non-strided tensors are rejected with the same policy as
+    comparison.
+    """
+    if not looks_like_torch_tensor(value):
+        return None
+
+    try:
+        import torch  # deliberately lazy and optional
+    except ImportError as error:  # pragma: no cover - defensive
+        raise BackendError(
+            "received a PyTorch tensor, but PyTorch is not installed in this environment"
+        ) from error
+
+    if not isinstance(value, torch.Tensor):
+        return None
+
+    if value.device.type != "cpu":
+        raise BackendError(
+            f"{role} is on device {value.device!s}; TensorTrail does not silently copy GPU "
+            "or accelerator tensors to CPU. Move it explicitly with `.detach().cpu()` and "
+            "record the conversion before registering the checkpoint."
+        )
+    if value.is_quantized:
+        raise UnsupportedDtypeError(
+            f"{role} is a quantized PyTorch tensor; dequantize it explicitly and record the "
+            "conversion before registering the checkpoint"
+        )
+    if value.layout != torch.strided:
+        raise UnsupportedDtypeError(
+            f"{role} has layout {value.layout}; only dense strided CPU tensors are supported"
+        )
+
+    return TorchDescription(
+        shape=tuple(int(dimension) for dimension in value.shape),
+        dtype=str(value.dtype).removeprefix("torch."),
+        nbytes=int(value.numel() * value.element_size()),
+        device="cpu",
+    )
 
 
 def torch_tensor_to_numpy(value: object, role: str) -> TorchConversion | None:

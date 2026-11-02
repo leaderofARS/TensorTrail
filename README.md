@@ -9,10 +9,14 @@ explicit conversion provenance. The default engine is a Rust extension built
 with PyO3 and Rayon. A NumPy implementation is included as a readable reference
 backend and parity oracle.
 
-> **Status: 0.1.0 alpha.** The numerical core, Python API, reports, tests, and
-> benchmarks in this repository are implemented and verified. GPU execution,
-> activation capture, and explicit SIMD kernels are **not** implemented; see
-> [Scope and non-goals](#scope-and-non-goals).
+> **Status: 0.2.0 alpha (source).** The 0.1.0 numerical core, Python API,
+> comparison reports, tests, and benchmarks are implemented and verified. 0.2.0
+> adds execution-aware inference validation on top of that engine: sessions,
+> checkpoint metadata, deterministic alignment, validation policies, explicit
+> missing/incompatible outcomes, and local checksummed artifacts. GPU execution,
+> automatic activation capture, and explicit SIMD kernels are **not**
+> implemented; see [Scope and non-goals](#scope-and-non-goals). 0.2.0 is not yet
+> tagged or published; see [Installation](#installation).
 
 ## Why TensorTrail
 
@@ -29,6 +33,11 @@ backend and parity oracle.
   actionable error. `backend="numpy"` is an explicit choice.
 - **Reports you can keep.** Stable JSON schema and a self-contained HTML report
   with inputs, conversions, metrics, counts, tolerances, and execution metadata.
+- **Execution-aware validation.** Group tensor checkpoints into reference and
+  candidate inference sessions, align them deterministically, validate each pair
+  with the same comparison engine, and persist checksummed local artifacts.
+  Missing, shape-incompatible, dtype-rejected, and backend-failed checkpoints are
+  explicit outcomes, never silent passes.
 
 ## Installation
 
@@ -55,9 +64,12 @@ Optional PyTorch input support:
 python -m pip install "tensortrail[torch]"
 ```
 
-tensortrail 0.1.0 is published on PyPI: `python -m pip install tensortrail`.
-The released wheel targets CPython 3.13 on Linux x86_64; other platforms install
-from source and need a Rust toolchain.
+tensortrail 0.1.0 is the current PyPI release:
+`python -m pip install tensortrail`. The published wheel targets CPython 3.13
+on Linux x86_64; other platforms install from source and need a Rust toolchain.
+The 0.2.0 source in this repository is implemented and locally verified but has
+not been tagged or published. Install it from a checkout with
+`python -m pip install .` (or `maturin develop --release` for development).
 
 ## Quick start
 
@@ -187,6 +199,88 @@ CPU tensors are converted explicitly; `requires_grad` tensors are detached and
 the note is recorded. Accelerator and quantized tensors are rejected. TensorTrail
 does not claim GPU support and does not silently move data to the host.
 
+## Execution validation
+
+`tt.compare()` compares one tensor pair. `tt.validate()` compares two complete
+inference executions checkpoint by checkpoint, using `tt.compare()` underneath
+for every matched pair.
+
+```python
+import numpy as np
+import tensortrail as tt
+
+reference = tt.ExecutionSession.create(
+    model_id="classifier",
+    model_version="1.0",
+    framework="pytorch",
+    precision="float32",
+    device_type="cpu",
+)
+candidate = tt.ExecutionSession.create(
+    model_id="classifier",
+    model_version="1.1",
+    framework="pytorch",
+    precision="float32",
+    device_type="cpu",
+)
+
+reference.add_checkpoint(
+    name="encoder.output",
+    tensor=np.array([1.0, 2.0, 3.0], dtype=np.float32),
+    stage_name="encoder",
+)
+candidate.add_checkpoint(
+    name="encoder.output",
+    tensor=np.array([1.0, 2.0, 3.0001], dtype=np.float32),
+    stage_name="encoder",
+)
+reference.finalize()
+candidate.finalize()
+
+result = tt.validate(
+    reference,
+    candidate,
+    policy=tt.ValidationPolicy(atol=1e-3, rtol=1e-3),
+)
+print(result.status)   # "passed"
+print(result.summary)
+```
+
+Rules:
+
+- A session moves from `created` to `recording` on its first checkpoint and then
+  to `completed` or `failed`. Validation requires two completed sessions.
+- Checkpoints are matched by an explicit mapping first, then by unique
+  checkpoint name. List position is never used as an alignment rule.
+- Missing required checkpoints and shape mismatches produce `incomplete` by
+  default. `fail_on_missing_checkpoints` and `fail_on_shape_mismatch` turn those
+  conditions into `failed`.
+- A dtype change is reported and compared, unless `fail_on_dtype_change=True`
+  makes it a policy failure without running the comparison.
+- Every matched pair is compared by `tt.compare()`. Validation does not
+  reimplement metric or tolerance logic.
+- `aggregation_strategy="all"` is the default. `"any"` passes when at least one
+  matched checkpoint passes, but required incomplete or policy-failed conditions
+  still take precedence.
+
+Persistence:
+
+```python
+storage = tt.FilesystemStorage("tensortrail_artifacts")
+storage.save_execution(reference)
+storage.save_execution(candidate)
+storage.save_validation(result)
+
+loaded_reference = storage.load_execution(reference.execution_id)
+reloaded_result = storage.load_validation(result.validation_id)
+```
+
+Artifacts use versioned JSON manifests, SHA-256 checksums, atomic directory
+publication, validated path segments, and `np.load(..., allow_pickle=False)`.
+PyTorch payloads can be validated in memory, but must be converted explicitly
+before persistence; TensorTrail does not transfer or convert them implicitly.
+See the full [execution model](docs/execution_model.md).
+
 ## Reports
 
 `report.metrics`, `report.statistics`, `report.counts`, `report.reference`,
@@ -196,6 +290,13 @@ extension; `format=` overrides it. `report.to_dict()` and `report.to_json()`
 expose the same schema (`schema_version: "1.0"`). Strict JSON is emitted: any
 non-finite float that survives overflow is encoded as `"NaN"`, `"Infinity"`, or
 `"-Infinity"`.
+
+Validation results are separate JSON artifacts with `artifact_type:
+"validation"` and schema version `"1.0"`. They record both execution metadata
+objects, the policy, the full alignment, per-checkpoint outcomes and comparison
+reports, derived counts, the highest observed deviation, and a human-readable
+summary. `ValidationResult.save(path)`, `load(path)`, `to_dict()`, `to_json()`,
+and `from_dict()` round-trip the document; the same non-finite sentinels apply.
 
 ## Performance
 
@@ -229,13 +330,22 @@ Implemented and verified:
 - Python API, typed reports, JSON/HTML serialization, and atomic saves.
 - Optional CPU PyTorch tensors with explicit conversion and rejection of
   accelerator/quantized/complex layouts.
-- Unit, parity, determinism, layout, reporting, import-isolation, integration,
-  and optional PyTorch tests.
+- Execution sessions and checkpoint metadata with an explicit lifecycle.
+- Deterministic checkpoint alignment with explicit mappings and structured
+  missing-checkpoint entries.
+- Execution validation with `tt.validate()`, `all`/`any` aggregation, explicit
+  skip outcomes, and JSON reload.
+- Local execution/validation artifacts with versioned manifests, SHA-256
+  checksums, safe path handling, atomic publication, and pickle-free loading.
+- Unit, parity, determinism, layout, reporting, import-isolation, execution,
+  validation, integration, and optional PyTorch tests.
 
 Not implemented (not claimed):
 
 - GPU/CUDA/MPS-native metrics, multi-device comparison, or distributed runs.
-- Activation capture/hooks, graph tracing, and model patching.
+- Automatic activation capture, framework hooks, graph tracing, and model
+  patching. Capture is manual in 0.2.0.
+- Cloud or object storage for execution artifacts.
 - Explicit AVX/NEON/SVE kernels or runtime CPU dispatch.
 - Complex-valued tensors, quantized dequantization, sparse tensors, or masked
   arrays.
@@ -257,8 +367,9 @@ pytest
 
 See [docs/development.md](docs/development.md) for platform notes, CI, and
 release steps. Contribution guidelines are in [CONTRIBUTING.md](CONTRIBUTING.md),
-and release history is in [CHANGELOG.md](CHANGELOG.md). The verified status of
-this release is documented in the
+and release history is in [CHANGELOG.md](CHANGELOG.md). The execution-validation
+contract is in [docs/execution_model.md](docs/execution_model.md). The verified
+status of this release is documented in the
 [engineering report](docs/engineering_report.md).
 
 ## License

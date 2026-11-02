@@ -10,11 +10,13 @@ environments where the extension cannot be built.
 
 ```text
 python/tensortrail/
-  api.py                  public functions: compare, metric helpers, statistics
+  api.py                  public functions: compare, validate, metric helpers
   config.py               ComparisonConfig validation and metric names
   comparison/engine.py    normalize -> dispatch -> assemble report
   core/metadata.py        dtype/layout normalization and provenance
   core/result.py          immutable result dataclasses and summary rendering
+  execution/              execution metadata, checkpoints, sessions, artifacts
+  validation/             policy, alignment, validation engine, results, reporting
   backends/               BackendResult contract, NumPy and native adapters
   backends/pytorch_backend.py  lazy, explicit CPU tensor conversion
   reporting/              strict JSON and self-contained HTML writers
@@ -51,6 +53,29 @@ The fused native kernel always computes the binary metrics in one traversal.
 Requesting a subset changes only what is exposed in the report, not how the
 kernel executes. `"statistics"` opts into Welford accumulation during the same
 traversal.
+
+## Execution validation flow
+
+`tt.validate(reference, candidate, policy, alignment)` adds a layer above
+`compare` without changing it:
+
+1. Both sessions are checked for `completed` status.
+2. The policy is resolved; a supplied alignment is checked against both
+   execution IDs and the policy's checkpoint selection.
+3. Checkpoints are aligned by explicit mapping first, then by unique name.
+   Unmatched checkpoints remain explicit `missing_reference` /
+   `missing_candidate` entries.
+4. Each matched pair is dispatched to `tt.compare()` with the policy's
+   `ComparisonConfig`.
+5. Missing, shape-incompatible, dtype-rejected, invalid, and backend-failed
+   cases become explicit outcomes; they never become passes.
+6. Checkpoint outcomes are aggregated into `passed`, `failed`, or `incomplete`
+   and assembled into an immutable `ValidationResult`.
+
+A supplied alignment must cover every checkpoint in both sessions unless a
+`checkpoint_selection` is configured. This prevents an incomplete alignment from
+silently reducing the scope of validation. The engine does not import PyTorch or
+inspect framework graphs; capture remains an explicit caller action.
 
 ## Native binding contract
 
@@ -121,13 +146,28 @@ and records each action. CUDA, MPS, meta, quantized, sparse, and complex tensors
 are rejected rather than silently converted. This is deliberate: a report that
 says `device="cpu"` must not hide a device transfer.
 
+Execution sessions use the same detection only to describe a checkpoint's shape,
+dtype, byte size, and device. Registering a CPU torch tensor does not convert it;
+validation converts through the comparison adapter when a pair is compared.
+Persistence requires an explicit NumPy payload, because storing a framework
+object or converting it implicitly would violate the explicit-data-movement
+rule.
+
 ## Reports
 
-Reports are immutable dataclasses. The JSON serializer converts tuples to
-lists, emits a schema version, and encodes non-finite floats as strings so the
-document remains valid under `json.loads`. HTML reports embed the escaped JSON
-and use no external assets. Writes go through a temporary file in the
+Comparison reports are immutable dataclasses. The JSON serializer converts
+tuples to lists, emits a schema version, and encodes non-finite floats as strings
+so the document remains valid under `json.loads`. HTML reports embed the escaped
+JSON and use no external assets. Writes go through a temporary file in the
 destination directory followed by an atomic replace.
+
+Validation reports are a separate document type (`artifact_type:
+"validation"`) and include both execution metadata objects, the policy, the full
+alignment, per-checkpoint outcomes, embedded comparison reports, derived counts,
+and the highest observed deviation. Filesystem artifacts add versioned
+manifests, SHA-256 checksums, safe path validation, staged directory publication,
+and pickle-free `.npy` loading. See
+[execution_model.md](execution_model.md).
 
 ## Error model
 
@@ -136,8 +176,17 @@ All public exceptions derive from `TensorTrailError`:
 - `TensorValidationError` for invalid values or configurations;
 - `TensorShapeError` for shape mismatches;
 - `UnsupportedDtypeError` for rejected dtypes;
-- `BackendError` for unavailable or failed native execution.
+- `BackendError` for unavailable or failed native execution;
+- `ExecutionStateError` for illegal session transitions or validating a
+  non-completed session;
+- `CheckpointError` / `CheckpointNotFoundError` for registration and lookup
+  failures;
+- `AlignmentError` for invalid, ambiguous, or incomplete alignment;
+- `ArtifactError` / `ArtifactIntegrityError` for missing, malformed, or
+  tampered persistence.
 
 Errors include the role (`reference`/`candidate`), offending dtype or shape, and
 an actionable next step. Numerical policy never converts an error into a
-plausible-looking number.
+plausible-looking number. During validation, comparison-time tensor/backend
+errors are converted into explicit checkpoint outcomes where the engine can
+continue; configuration and lifecycle errors raise before comparison.

@@ -105,6 +105,7 @@ Focused runs:
 
 ```bash
 pytest tests/numerical -q
+pytest tests/execution tests/validation -q
 pytest tests/python/test_reporting.py -q
 pytest -k parity -q
 ```
@@ -174,8 +175,8 @@ maturin build --release --sdist --out dist
 Inspect both artifacts before installing:
 
 ```bash
-python -m zipfile -l dist/tensortrail-0.1.0-*.whl
-tar -tzf dist/tensortrail-0.1.0.tar.gz | head -40
+python -m zipfile -l dist/tensortrail-0.2.0-*.whl
+tar -tzf dist/tensortrail-0.2.0.tar.gz | head -40
 ```
 
 The wheel must contain:
@@ -192,12 +193,19 @@ Smoke-test a clean install:
 
 ```bash
 python -m venv /tmp/tt-smoke
-/tmp/tt-smoke/bin/python -m pip install --no-deps dist/tensortrail-0.1.0-*.whl
+/tmp/tt-smoke/bin/python -m pip install --no-deps dist/tensortrail-0.2.0-*.whl
 /tmp/tt-smoke/bin/python -c "
 import numpy as np, tensortrail as tt
 r = tt.compare(np.array([1.0, 2.0]), np.array([1.0, 4.0]))
 assert r.metrics.mae == 1.0
-print(tt.__version__, r.status)
+ref = tt.ExecutionSession.create(model_id='m', model_version='1', framework='numpy', precision='float64')
+cand = tt.ExecutionSession.create(model_id='m', model_version='2', framework='numpy', precision='float64')
+ref.add_checkpoint(name='a', tensor=np.array([1.0, 2.0]))
+cand.add_checkpoint(name='a', tensor=np.array([1.0, 2.0]))
+ref.finalize(); cand.finalize()
+result = tt.validate(ref, cand, policy=tt.ValidationPolicy())
+assert result.status == 'passed'
+print(tt.__version__, r.status, result.status)
 "
 ```
 
@@ -220,23 +228,26 @@ an explicit manual dispatch and authenticates through PyPI Trusted Publishing.
 
 ## Versioning and release checklist
 
-The version appears in three places and they must agree:
+The version appears in four places and they must agree:
 
 1. `pyproject.toml` (`project.version`);
 2. `python/tensortrail/_version.py` (`__version__`);
-3. `native/tensortrail-core/Cargo.toml` (`package.version`).
+3. `native/tensortrail-core/Cargo.toml` (`package.version`);
+4. `Cargo.lock` (the `tensortrail-core` package entry).
 
 The Python adapter checks the native extension version at load time and raises
-`BackendError` on a mismatch. Update `Cargo.lock` by building after changing the
-crate version.
+`BackendError` on a mismatch. Update `Cargo.lock` by running `cargo metadata`,
+`cargo build`, or `cargo test` after changing the crate version; do not hand-edit
+other dependency entries.
 
 Checklist:
 
-1. Bump the version in all three files and update `CHANGELOG.md`.
+1. Bump the version in all four files and update `CHANGELOG.md`.
 2. Run the Rust tests, Clippy, fmt check, Ruff, mypy, and pytest.
 3. Run both benchmark suites if performance claims changed.
 4. Build the wheel and sdist; inspect their contents.
-5. Install the wheel into a clean environment and run the smoke test.
+5. Install the wheel and sdist into separate clean environments and run the
+   smoke tests.
 6. Update affected documentation and the engineering report.
 7. Tag only after the checks above pass. Publication requires separate approval;
    see [publishing.md](publishing.md).
@@ -248,6 +259,8 @@ Checklist:
 | `BackendError: native TensorTrail extension is not available` | Run `maturin develop --release` in the active environment, or use `backend="numpy"` explicitly. |
 | `does not match native extension version` | Rebuild the extension after a version bump. |
 | `Couldn't find a virtualenv` from maturin | Activate the environment or set `VIRTUAL_ENV`. |
+| `maturin ... Failed to run cargo rustc: Access is denied` on Windows | An environment variable named `cargo`/`CARGO` may point at a directory. Unset it for the build, or set `CARGO` to the full path of `cargo.exe`. |
+| Maturin reports `zlib.dll` from Anaconda | This is a transitive dependency of Anaconda's `python313.dll`, not of the extension. Verify with a standalone CPython install before bundling anything. |
 | `link.exe not found` on Windows | Install the MSVC C++ workload and initialize `vcvars64.bat`. |
 | Importing torch aborts with `OMP: Error #15` | Conflicting OpenMP runtimes in the environment; see the Windows note above. |
 | Native tests skipped | The extension is not installed in the interpreter running pytest. |
@@ -256,6 +269,7 @@ Checklist:
 ## Related documents
 
 - [Architecture](architecture.md)
+- [Execution model](execution_model.md)
 - [Numerical methods](numerical_methods.md)
 - [Benchmarking](benchmarking.md)
 - [Engineering report](engineering_report.md)

@@ -1,336 +1,385 @@
-# TensorTrail 0.1.0 Engineering Report
+# TensorTrail 0.2.0 Engineering Report
 
-**Date:** 2026-10-31  
-**Status:** alpha, source release candidate  
-**Scope:** numerical drift detection and tensor comparison for ML inference  
-**Distribution:** published to PyPI on 2026-10-31 (source, sdist, and CPython 3.13 Linux wheel)
+**Date:** 2026-11-02  
+**Status:** alpha, implemented and locally verified; not tagged or published  
+**Scope:** execution-aware inference validation on top of the 0.1.0 numerical comparison engine  
+**Distribution:** source only; `0.1.0` remains the current public PyPI release
 
 This report separates what was executed and observed from what is planned,
 configured, or deliberately out of scope. It describes the repository state at
-the date above.
+the date above. Version `0.2.0` has not been tagged, uploaded to TestPyPI/PyPI,
+or published as a GitHub release.
 
 ## 1. Summary
 
-TensorTrail 0.1.0 is a Python package with a Rust numerical engine. It compares a
-reference tensor and a candidate tensor, then returns a typed report containing
-fused MAE/MSE/RMSE, relative error, cosine similarity, tolerance outcomes,
-per-tensor statistics, non-finite counts, input provenance, and execution
-metadata. The native engine is optional at import time and loaded on first use;
-the NumPy backend is a readable reference implementation and parity oracle.
+TensorTrail 0.2.0 adds an execution-level validation layer above the existing
+tensor comparison API. An `ExecutionSession` records the provenance of one
+inference run and a set of checkpoint metadata/payload pairs. Two completed
+sessions can be aligned deterministically and validated checkpoint by
+checkpoint. Every matched pair is still evaluated by `tt.compare()`; the Rust
+numerical engine and the 0.1.0 comparison policy are unchanged.
 
-Verified:
+The execution layer adds:
 
-- the Rust core compiles in release mode and passes 57 unit tests;
-- the Python suite passes 208 tests with torch installed (2 platform/hardware
-  skips), and 193 tests with 17 skips in NumPy-only clean environments;
-- Ruff, strict mypy, `cargo fmt --check`, and Clippy with `-D warnings` pass;
-- wheel and sdist build successfully, both install into clean environments, and
-  the installed package performs a native comparison;
-- the package builds and its tests pass on CPython 3.11, 3.12, 3.13, and 3.14;
-- the hosted GitHub Actions workflow passed Rust checks, Python lint/type
-  checks, the 12-job Linux/macOS/Windows test matrix, the NumPy 1.24 floor job,
-  and the packaging smoke job;
-- the NumPy 1.24.4 dependency floor was built against and tested on Python 3.11;
-- measured end-to-end and kernel benchmarks are recorded with environment and
-  methodology.
+- immutable execution and checkpoint metadata;
+- explicit session lifecycle rules;
+- deterministic alignment by explicit mapping or unique checkpoint name;
+- a validation policy that reuses `ComparisonConfig`;
+- explicit outcomes for missing, shape-incompatible, dtype-rejected, invalid,
+  and backend-failed checkpoints;
+- `passed` / `failed` / `incomplete` aggregation;
+- local execution and validation artifacts with versioned manifests, SHA-256
+  checksums, safe paths, atomic publication, and pickle-free loading;
+- validation JSON serialization and reload.
 
-Not verified by direct local execution:
+Verified locally on Windows 11 with CPython 3.13.5 and NumPy 2.1.3:
 
-- interactive manual use on Linux or macOS (their automated test jobs passed,
-  but only Windows was used for local development);
+- the Rust core passes 57 tests; `cargo fmt --check` and Clippy with
+  `-D warnings` pass;
+- Ruff passes over `python/`, `tests/`, and `benchmarks/`; strict mypy passes on
+  29 source files;
+- the Python suite passes **399 tests with 2 skips**;
+- wheel and sdist `0.2.0` artifacts build successfully;
+- both artifacts install into separate clean virtual environments, and the
+  installed package performs native comparison and execution validation;
+- the built extension reports version `0.2.0` and the Python loader accepts it.
+
+Not verified for this revision:
+
+- hosted CI has not run for the 0.2.0 working tree; the last green CI run was
+  for 0.1.0;
+- Python 3.11, 3.12, and 3.14, Linux, and macOS have not been re-run for 0.2.0;
+  the 0.1.0 matrix results remain historical evidence only;
 - GPU, distributed, or accelerator execution (not implemented);
-- sustained performance across machines or thermal states;
-- publication from this workstation (the hosted release workflow uploaded 0.1.0
-  to PyPI; TestPyPI was not used).
+- sustained performance of the new validation layer (no new benchmark run);
+- publication from this workstation (deliberately withheld).
 
 ## 2. Implemented capability
 
 | Area | Implementation | Status |
 | --- | --- | --- |
-| Metrics | Fused MAE, MSE, RMSE, relative mean/max, cosine, max absolute error, tolerance mismatches, non-finite counts | Verified |
-| Statistics | Welford min/max/mean/population variance/std dev, optional fused pass | Verified |
+| Comparison metrics | Fused MAE, MSE, RMSE, relative mean/max, cosine, max absolute error, tolerance mismatches, non-finite counts | Verified, unchanged from 0.1.0 |
+| Statistics | Welford min/max/mean/population variance/std dev, optional fused pass | Verified, unchanged |
 | Native engine | Rust crate with PyO3/numpy bindings and Rayon reductions | Verified |
-| Reference engine | NumPy implementation of the same policy | Verified |
-| Parallelism | Fixed chunks, ordered merges, cached Rayon pools, sequential fallback | Verified |
-| Configuration | Backend, metrics, tolerances, epsilon, threads, threshold, chunk size, GIL release | Verified |
-| Inputs | NumPy arrays, numeric array-like objects, optional CPU PyTorch tensors | Verified |
-| Normalization | Float16, integers, bools, mixed dtypes, layouts, byte order; bfloat16 via CPU torch | Verified |
-| Rejections | Complex, object, string, datetime, masked, extended precision, accelerator/quantized tensors | Verified |
-| Reports | Immutable typed objects, summary text, strict JSON, self-contained HTML, atomic writes | Verified |
-| Packaging | Maturin wheel/sdist, `py.typed`, Apache-2.0 license, SBOM in wheel | Verified |
-| CI | Rust, lint/type, OS/Python matrix, NumPy floor, packaging jobs | Verified on GitHub Actions |
-| Release publishing | Separate `publish.yml`, OIDC trusted publishing, version/tag checks, TestPyPI and PyPI targets | Executed: 0.1.0 published to PyPI |
+| Reference engine | NumPy implementation of the same numerical policy | Verified |
+| Execution metadata | Immutable provenance: model, framework, precision, device, input, dataset, timestamps, JSON configuration | Verified |
+| Checkpoints | Immutable tensor metadata separated from payloads; metadata-only NumPy/PyTorch description | Verified |
+| Sessions | `created` / `recording` / `completed` / `failed` lifecycle, ordered registration, explicit payload access | Verified |
+| Alignment | Explicit ID/name mappings first, unique names second, structured unmatched entries, metadata mismatches | Verified |
+| Validation policy | Comparison settings plus checkpoint selection, missing/shape/dtype policy, `all`/`any` aggregation | Verified |
+| Validation engine | Per-checkpoint `tt.compare()` calls, explicit skip outcomes, status aggregation | Verified |
+| Results and reporting | Typed checkpoint/validation results, summary, strict JSON, reload, non-finite sentinels | Verified |
+| Artifacts | Local versioned manifests, SHA-256 checksums, safe paths, atomic directory publication, `allow_pickle=False` | Verified |
+| Comparison reports | Existing JSON/HTML plus comparison-report reload for embedded validation reports | Verified |
+| Packaging | Maturin wheel/sdist, `py.typed`, Apache-2.0 license, SBOM in wheel | Verified locally for 0.2.0 |
+| CI | Rust, lint/type, OS/Python matrix, NumPy floor, packaging jobs | Not run for 0.2.0; 0.1.0 CI was green |
+| Publishing | Separate `publish.yml`, OIDC trusted publishing, version/tag checks | 0.1.0 published; 0.2.0 not authorized |
 
-## 3. Architecture
+## 3. Architecture and data boundaries
 
-The Python layer owns configuration, provenance, input normalization, backend
-selection, report assembly, and serialization. The Rust layer owns shape and
-option validation, chunk partitioning, numerical kernels, and parallel
-execution. A backend returns a backend-neutral `BackendResult`; the engine
-exposes only requested metrics and constructs an immutable `ComparisonReport`.
+The existing split is preserved:
 
-The native extension is `tensortrail._core`. It is imported lazily. A missing or
-version-mismatched extension raises `BackendError`; TensorTrail never falls back
-to NumPy without an explicit `backend="numpy"` configuration. CUDA, MPS, meta,
-quantized, sparse, and complex PyTorch tensors are rejected rather than copied to
-the host or dequantized silently.
+- the Rust core owns shape/option validation, numerical kernels, reductions, and
+  deterministic parallel execution;
+- the Python comparison layer owns normalization, provenance, backend
+  selection, comparison reports, and JSON/HTML serialization;
+- the new Python execution layer owns session lifecycle, checkpoint metadata,
+  payload references, alignment, validation policy/results, and local artifact
+  persistence.
 
-Details: [architecture.md](architecture.md).
+The execution and validation packages do not import PyTorch or the native
+extension at package import time. The Rust crate is independent of PyTorch,
+TensorFlow, ONNX, and model architectures.
 
-## 4. Numerical policy
+Checkpoint metadata and payloads are separate. Registering a NumPy array stores
+a reference to the array; registering a CPU PyTorch tensor records its shape,
+dtype, byte size, and device without converting it. Validation calls the
+existing explicit CPU adapter when a comparison is executed. Accelerator,
+quantized, and unsupported tensors are rejected rather than transferred.
+Persistence currently requires NumPy-compatible payloads; a PyTorch payload must
+be converted explicitly by the caller first. See
+[execution_model.md](execution_model.md) for the full contract.
 
-- Working dtypes are float32 or float64. Accumulation and reported scalars are
-  float64.
-- Float16 and bfloat16 widen to float32. Integers and bools widen to float64.
-  Mixed float32/float64 inputs widen to float64. The default suite verifies
-  bfloat16 through CPU torch tensors; NumPy has no built-in bfloat16 dtype, and a
-  third-party dtype supplying that name is supported by the same path but is not
-  part of the default test matrix.
-- Non-contiguous, negative-stride, unaligned, and non-native-endian arrays are
-  copied to contiguous native buffers, with each action recorded in
-  `conversion_notes`.
-- Non-finite elements are excluded from metric sums and statistics and counted by
-  category. Non-finite pattern differences fail the comparison; corresponding
-  NaNs match when `equal_nan=True`.
-- Empty or entirely non-finite inputs produce `None` metrics, never fabricated
-  zeros.
-- Relative error uses `|r - c| / max(|r|, epsilon)` with `epsilon=1e-12` by
-  default.
-- Cosine handles two zero vectors as `1.0`, one zero vector as `0.0`, and uses a
-  scaled two-pass fallback when norms overflow or underflow.
-- Variance is population variance (`n`), computed with Welford updates and
-  Chan-style chunk merges.
-- Tolerance is `|r - c| <= atol + rtol * |r|` with defaults `atol=1e-6` and
+## 4. Execution validation semantics
+
+Lifecycle:
+
+```text
+created -> recording -> completed
+   |          |
+   +----------+-----> failed
+```
+
+- The first checkpoint registration moves `created` to `recording`.
+- `finalize()` accepts `created` or `recording` and produces `completed`.
+- `fail(reason)` accepts `created` or `recording` and produces `failed`.
+- Both terminal states reject further registration or transitions.
+- Validation requires two completed sessions. Empty completed sessions produce
+  `incomplete`; they never fabricate a pass.
+
+Alignment:
+
+- explicit mapping (checkpoint IDs or names) first;
+- unique checkpoint name second;
+- otherwise an explicit `missing_reference` / `missing_candidate` entry;
+- list position is never an alignment rule;
+- a supplied alignment must cover every checkpoint unless a checkpoint selection
+  is configured;
+- duplicate names, ambiguous mappings, unknown endpoints, and selection
+  mismatches raise `AlignmentError`.
+
+Policy and status:
+
+- `ValidationPolicy` validates its comparison fields by constructing a
+  `ComparisonConfig`; tolerance and metric logic are not reimplemented.
+- Missing required checkpoints and shape mismatches produce `incomplete` by
+  default. `fail_on_missing_checkpoints=True` and
+  `fail_on_shape_mismatch=True` turn them into `failed`.
+- A dtype change is reported and compared unless `fail_on_dtype_change=True`
+  makes it a policy failure without a comparison.
+- Unsupported dtypes, invalid tensors, and backend failures are explicit
+  checkpoint outcomes, never passes.
+- `aggregation_strategy="all"` is the default. `"any"` passes when at least one
+  matched checkpoint passes, but required incomplete and structural
+  policy-failure conditions take precedence.
+
+Persistence:
+
+- execution layout: `manifest.json` plus per-checkpoint `metadata.json` and
+  `tensor.npy`;
+- validation layout: `manifest.json` plus `validation.json`;
+- manifests are versioned and typed, and record library version, identity,
+  status/timestamps, policy/alignment/results, and SHA-256 checksums;
+- IDs are validated as safe single path segments;
+- artifacts are staged and published by directory rename, and existing
+  artifacts are never overwritten;
+- `.npy` files are loaded with `allow_pickle=False`;
+- metadata, checksums, byte sizes, shapes, and dtypes are verified on load;
+- missing, malformed, or tampered artifacts raise `ArtifactError` or
+  `ArtifactIntegrityError`.
+
+## 5. Numerical policy
+
+The numerical policy is unchanged from 0.1.0:
+
+- working dtypes are float32 or float64; accumulation and reported scalars are
+  float64;
+- float16 and bfloat16 widen to float32; integers and bools widen to float64;
+  mixed float32/float64 widens to float64;
+- non-contiguous, negative-stride, unaligned, and non-native-endian arrays are
+  copied to contiguous native buffers with conversion notes;
+- non-finite values are excluded from metric sums and statistics and counted by
+  category; non-finite pattern differences fail the comparison;
+- empty or entirely non-finite inputs produce `None` metrics, never zeros;
+- relative error uses `|r - c| / max(|r|, epsilon)` with default
+  `epsilon=1e-12`;
+- cosine handles two zero vectors as `1.0`, one zero vector as `0.0`, and uses a
+  scaled fallback for extreme magnitudes;
+- variance is population variance (`n`);
+- tolerance is `|r - c| <= atol + rtol * |r|` with defaults `atol=1e-6` and
   `rtol=1e-5`.
 
-Determinism: fixed chunk boundaries and ordered partial merges make parallel
-results identical across worker counts for a fixed chunk size. Sequential and
-parallel paths can differ in the last bits because their reduction trees differ.
-Changing `chunk_size` can also change rounding. This is documented rather than
-presented as bit-identical reproducibility.
+Determinism is unchanged: fixed chunk boundaries and ordered partial merges make
+parallel results identical across worker counts for a fixed chunk size.
+Sequential and parallel paths can differ in the last bits, and changing
+`chunk_size` can change rounding. This is documented rather than presented as
+bit-identical reproducibility.
 
-Details and justified parity tolerances: [numerical_methods.md](numerical_methods.md).
+Validation adds policy around comparisons, not a new numerical implementation.
+Each matched checkpoint pair is passed to the existing comparison engine with the
+policy's `ComparisonConfig`.
 
-## 5. Verification evidence
+## 6. Verification evidence
 
 All commands below were run from the repository root on Windows 11 unless noted.
 
 ### Rust
 
 ```text
-cargo fmt --manifest-path native/tensortrail-core/Cargo.toml --all -- --check
+cargo fmt --check
   -> exit 0
 
-cargo clippy --manifest-path native/tensortrail-core/Cargo.toml \
-  --all-targets --all-features -- -D warnings
+cargo clippy --all-targets --all-features -- -D warnings
   -> Finished; no warnings
 
-cargo test --manifest-path native/tensortrail-core/Cargo.toml \
-  --release --all-features
+cargo test
   -> 57 passed; 0 failed; 0 ignored
 ```
 
 The 57 tests cover hand-calculated values, empty inputs, NaN/Inf handling,
 overflow, zero vectors, epsilon floors, Welford statistics, fused-versus-standalone
 agreement, parallel thread-count invariance, chunk tails, cached pools, and shape
-validation.
+validation. The Rust sources were not modified for 0.2.0; only the crate version
+changed.
 
 ### Python
 
 ```text
-ruff check python tests benchmarks
+ruff check python/tensortrail tests benchmarks
   -> All checks passed
 
-mypy
-  -> Success: no issues found in 17 source files
+mypy python/tensortrail
+  -> Success: no issues found in 29 source files
 ```
 
 Primary environment (CPython 3.13.5, NumPy 2.1.3, torch 2.9.1+cpu):
 
 ```text
 pytest -q -p no:anchorpy
-  -> 208 passed, 2 skipped
+  -> 399 passed, 2 skipped
 ```
 
 Skips:
 
 - extended-precision `longdouble` rejection test: on this Windows build,
-  `longdouble` is the same as `float64`, so the test has no distinct dtype to
+  `longdouble` is the same as `float64`, so there is no distinct dtype to
   exercise;
 - CUDA rejection test: CUDA is not available.
 
-Clean NumPy-only environments (no torch):
+The suite grew from 208 to 399 tests. The new coverage includes:
 
-| Python | NumPy | Result |
-| --- | --- | --- |
-| 3.11.15 | 1.24.4 | 193 passed, 17 skipped |
-| 3.12.13 | 2.5.4 | 193 passed, 17 skipped |
-| 3.13.13 | 2.5.4 | 193 passed, 17 skipped |
-| 3.14.3 | 2.5.4 | 193 passed, 17 skipped |
+- metadata validation, identifiers, timestamps, JSON round-trips, and rejection
+  of non-JSON values;
+- checkpoint metadata, tensor description, registry uniqueness/order, session
+  lifecycle, and payload separation;
+- persistence round-trips, non-overwriting saves, checksums, tamper detection,
+  missing files, unsafe IDs, and pickle-free loading;
+- policy defaults/validation, alignment rules, explicit mappings, selections,
+  missing entries, and metadata mismatches;
+- validation outcomes for pass/fail, numerical failure, missing checkpoints,
+  shape and dtype policies, unsupported dtypes, backend failures, invalid
+  tensors, empty sessions, and aggregation strategies;
+- validation JSON schema, strict reload, non-finite sentinels, and comparison
+  report reload;
+- an end-to-end persisted workflow and public-API compatibility checks;
+- optional PyTorch metadata, persistence rejection, and in-memory validation.
 
-The extra skips are the optional PyTorch tests. The Python 3.11 run used the
-oldest supported NumPy and was built against that NumPy version, validating the
-declared `numpy>=1.24` floor on that interpreter.
-
-The test suite covers hand-calculated metrics, NumPy/Rust parity on randomized
-data, parallel determinism across 2/3/4/8 workers, layouts and dtypes, rejection
-paths, configuration validation, JSON/HTML escaping and non-finite sentinels,
-atomic saves, import isolation, missing-extension behavior, version mismatch,
-optional CPU torch conversion, and an end-to-end workflow.
-
-The `-p no:anchorpy` flag was used only in the Anaconda environment because an
-unrelated globally installed plugin fails to import there; it is not required by
+The `-p no:anchorpy` flag is used only in the Anaconda environment because an
+unrelated globally installed plugin fails to import there. It is not required by
 the project's CI configuration.
+
+Torch tests run after the large NumPy numerical tests in this Anaconda
+environment. Importing torch before a large NumPy dot product aborts with
+`OMP: Error #15`; this is an environment-specific OpenMP conflict, documented in
+[development.md](development.md).
 
 ### Packaging
 
 ```text
 maturin build --release --sdist --out dist
-  -> dist/tensortrail-0.1.0.tar.gz
-  -> dist/tensortrail-0.1.0-cp313-cp313-win_amd64.whl
+  -> dist/tensortrail-0.2.0.tar.gz
+  -> dist/tensortrail-0.2.0-cp313-cp313-win_amd64.whl
 ```
 
 Wheel contents verified:
 
 - `tensortrail/` Python package and `py.typed`;
+- the new `execution/` and `validation/` packages;
 - `tensortrail/_core.cp313-win_amd64.pyd`;
 - `LICENSE` under `dist-info/licenses/`;
-- `METADATA` with `License-Expression: Apache-2.0`, project URLs, requires-python,
-  extras, and the NumPy dependency;
+- `METADATA` with version `0.2.0`, project URLs, requires-python, extras, and the
+  NumPy dependency;
 - a CycloneDX SBOM of the Rust dependency tree.
 
 Sdist contents verified:
 
 - Rust crate, `Cargo.toml`, `Cargo.lock`, and workspace manifest;
-- Python package and `py.typed`;
-- tests, documentation, benchmark scripts/results, contributing/changelog/conduct
-  files;
-- `README.md`, `LICENSE`, and `pyproject.toml`.
+- Python package and `py.typed`, including the new execution/validation modules;
+- tests, documentation (including `docs/execution_model.md`), benchmark
+  scripts/results, contributing/changelog/conduct files;
+- `README.md`, `LICENSE`, and `pyproject.toml` with version `0.2.0`.
 
-Clean installation:
+### Clean installation
 
-- the cp313 wheel installed into a standalone CPython 3.13.13 virtual
-  environment; `tt.compare` returned MAE `1.75`, status `fail`, and the native
-  engine reported version `0.1.0`, release profile, 20 Rayon threads, and
-  `simd: "scalar"`;
-- the sdist was built and installed with pip into a fresh CPython 3.13.13
-  environment; the full test suite then passed;
-- wheels were also built and tested for CPython 3.11, 3.12, and 3.14.
+- The cp313 wheel installed into a standalone CPython 3.13 virtual environment
+  with NumPy from PyPI. `tt.compare` returned status `fail` for a deliberate
+  difference; a persisted execution pair validated as `passed`; the native
+  extension reported version `0.2.0`.
+- The sdist installed with pip into a second fresh virtual environment, building
+  the Rust extension from source. The installed package reported Python version
+  `0.2.0`, native version `0.2.0`, and `is_native_available() == True`.
+- The installed wheel's public namespace still exposes the complete 0.1.0 API
+  alongside `ExecutionSession`, `ValidationPolicy`, `ValidationResult`,
+  `align_checkpoints`, `validate`, and `FilesystemStorage`.
 
-Maturin's Windows audit reported a transitive `zlib.dll` dependency originating
-from Anaconda's `python313.dll`, not from the extension itself. The extension's
-import table references `python313.dll` plus Windows system DLLs. The standalone
-CPython 3.13.13 install ran successfully, confirming that bundling Anaconda's
-zlib would be incorrect.
+Maturin's Windows audit again reported a transitive `zlib.dll` dependency
+originating from Anaconda's `python313.dll`, not from the extension itself. The
+extension's import table references `python313.dll` plus Windows system DLLs. The
+standalone CPython virtual environments installed and ran successfully,
+confirming that bundling Anaconda's zlib would be incorrect.
+
+### Compatibility
+
+- `tt.compare()`, the metric helpers, configuration types, comparison report
+  types, and 0.1.0 report schema `"1.0"` are unchanged.
+- The full 0.1.0 test suite continues to pass; new tests were added without
+  weakening existing assertions.
+- Importing `tensortrail` still does not import PyTorch or the native extension.
+- Validation uses the existing comparison engine for every matched pair.
+
+### CI status
+
+The 0.2.0 revision has not been pushed to the hosted CI workflow at the time of
+this report. The previous 0.1.0 revision passed the Rust checks, lint/type
+checks, the Linux/macOS/Windows Python matrix, the NumPy floor job, and the
+packaging smoke job. Those results are not presented as verification of 0.2.0.
+The local gates above are the current evidence for this revision.
 
 ### Benchmarks
 
-Environment: Windows 11, i7-12700H class (14 physical/20 logical cores), 15.68 GiB,
-CPython 3.13.5, NumPy 2.1.3, release build, Rayon 20 threads.
+The Rust numerical engine and its kernels are unchanged. The 0.1.0 end-to-end
+comparison benchmarks therefore remain representative of `tt.compare()`, but
+they do not measure session construction, alignment, or artifact I/O. No new
+benchmark run was performed for 0.2.0, and no performance claim is made for the
+validation layer.
 
-End-to-end `tt.compare` medians (7 repetitions):
+Previously recorded `tt.compare` medians (Windows 11, i7-12700H class, CPython
+3.13.5, NumPy 2.1.3, release build) remain in
+[benchmarking.md](benchmarking.md) and `benchmarks/results/`.
 
-| Elements | dtype | Rust | NumPy | Rust speedup |
-| ---: | --- | ---: | ---: | ---: |
-| 100,000 | float64 | 0.751 ms | 5.58 ms | 7.4× |
-| 1,000,000 | float64 | 1.828 ms | 80.32 ms | 43.9× |
-| 5,000,000 | float64 | 20.90 ms | 409.7 ms | 19.6× |
-| 1,000,000 | float32 | 1.685 ms | 91.46 ms | 54.3× |
+## 7. Release readiness
 
-Kernel-level fusion, equivalent work:
+Satisfied for the scoped 0.2.0 alpha:
 
-| Size | Work | Separate | Fused | Ratio |
-| ---: | --- | ---: | ---: | ---: |
-| 100,000 | binary metrics | 1.564 ms | 1.040 ms | 1.50× |
-| 100,000 | binary + statistics | 2.305 ms | 1.174 ms | 1.96× |
-| 1,000,000 | binary metrics | 3.671 ms | 2.676 ms | 1.37× |
-| 1,000,000 | binary + statistics | 5.463 ms | 3.243 ms | 1.68× |
+- execution metadata, sessions, checkpoints, alignment, validation policy,
+  validation engine, results, and local artifacts are implemented and tested;
+- missing, shape-incompatible, dtype-rejected, unsupported, invalid, and
+  backend-failed checkpoints are explicit outcomes, never passes;
+- every matched pair is compared by the existing engine;
+- persistence uses versioned manifests, checksums, safe paths, atomic writes,
+  and pickle-free loading;
+- the complete 0.1.0 public API remains available;
+- wheel and sdist build and install cleanly;
+- documentation distinguishes implemented behavior from deferred work.
 
-Absolute parallel timings varied under sustained load (the same 1M fused
-configuration measured 1.86–4.02 ms across runs), while within-group ratios were
-stable at roughly 1.4–1.5× for binary metrics and 1.7–2.0× with statistics.
-These are observations from one machine, not universal claims. The NumPy backend
-is a reference implementation, not a tuned competitor, and it upcasts float32
-working arrays to float64.
+Outstanding before publication:
 
-Methodology and caveats: [benchmarking.md](benchmarking.md). Raw data:
-`benchmarks/results/python-windows.json`,
-`benchmarks/results/criterion-windows.txt`, and
-`benchmarks/results/criterion-fusion-windows.txt`.
+- run hosted CI for the 0.2.0 revision;
+- decide whether to re-run the Python/OS matrix and benchmarks for 0.2.0;
+- obtain explicit authorization to tag and publish; none has been given.
 
-### CI
+The 0.1.0 production upload occurred on 2026-10-31 with explicit authorization.
+No 0.2.0 tag, GitHub release, TestPyPI upload, or PyPI upload has occurred.
 
-`.github/workflows/ci.yml` defines:
-
-- Rust formatting, Clippy, and release tests;
-- Ruff and strict mypy;
-- a Linux/macOS/Windows matrix for Python 3.11–3.14 that builds a wheel and runs
-  the suite against it;
-- a NumPy 1.24.4 floor job on Python 3.11;
-- wheel/sdist build, `twine check`, sdist content inspection, clean wheel
-  install, smoke test, and artifact upload.
-
-The commands were executed locally as described above. The workflow also ran on
-GitHub Actions for the public repository: all jobs passed, including the
-Linux/macOS/Windows matrix for Python 3.11–3.14, the NumPy floor job, and the
-packaging job. CI itself never publishes.
-
-### Release publishing
-
-`.github/workflows/publish.yml` is a separate workflow with two triggers: a
-published GitHub release, or a manual dispatch targeting `build-only`,
-`testpypi`, or `pypi`. It builds on Ubuntu, verifies that the three version
-declarations agree, requires a release tag to equal `v<version>`, installs the
-built wheel, runs a native-backend smoke test, and runs `twine check`. It then
-publishes with PyPI Trusted Publishing (`id-token: write`). The build job has a
-`build-only` path for validation without upload. Within a run, the publish jobs
-download the validated artifact rather than rebuilding it; the TestPyPI and
-production runs are separate builds from the same source revision, and the
-production build repeats the wheel install and smoke test before upload.
-
-The 0.1.0 release was published to PyPI on 2026-10-31 by the release-triggered
-workflow from the `v0.1.0` tag: the build job verified the three version
-declarations, the release tag, `twine check`, and the wheel smoke test, and the
-`Publish to PyPI` job uploaded the wheel and sdist through Trusted Publishing.
-A clean install from PyPI was verified (Windows: the published sdist builds,
-installs, and runs the native engine). TestPyPI validation was not run because
-no TestPyPI pending publisher was configured, so the production path was
-exercised directly; 0.1.0 can no longer be uploaded to TestPyPI.
-
-## 6. Release readiness
-
-Satisfied for the scoped 0.1.0 alpha:
-
-- all requested numerical features are implemented and tested;
-- the default backend is the Rust engine, with explicit failure when unavailable;
-- NumPy and Rust backends agree within documented tolerances;
-- reports are typed, serializable, and include conversion/execution provenance;
-- packaging is complete for the tested platforms;
-- benchmark evidence and limitations are recorded.
-
-Outstanding before a public release:
-
-- a decision on expanding wheel coverage beyond the Linux release wheel;
-- optional longer benchmark runs on additional hardware.
-
-The production upload of 0.1.0 to PyPI was performed on 2026-10-31 with explicit
-authorization; a repeat upload requires a version bump.
-
-## 7. Deliberately not implemented
+## 8. Deliberately not implemented
 
 - GPU/CUDA/MPS-native metrics, multi-device comparison, or distributed execution.
-- Activation capture, framework hooks, graph tracing, or model patching.
+- Automatic activation capture, framework hooks, graph tracing, or model
+  patching. Checkpoint capture is manual.
+- Cloud or object storage for execution artifacts.
 - Explicit AVX/NEON/SVE intrinsics or runtime CPU dispatch. The native build
   reports `simd: "scalar"`; no auto-vectorization claim is made.
 - Complex-valued, quantized, sparse, or masked-array semantics.
-- Cross-backend bit-identical results. Different reduction layouts can differ in
-  the last bits, as documented.
-- Automatic host transfers for accelerator tensors.
+- Cross-backend bit-identical results.
+- Automatic host transfers for accelerator tensors, or implicit conversion of
+  framework payloads during persistence.
+- A diagnostic hypothesis engine. The result records measurements and explicit
+  status; it does not identify the internal operation that caused a difference.
 
 These are scope decisions, not hidden fallbacks. Each rejection path is explicit
 and covered by tests where applicable.
 
-## 8. Reproducing the verification
+## 9. Reproducing the verification
 
 Prerequisites: Python 3.11+, Rust 1.85+ (tested 1.95.0), Maturin 1.16.0, MSVC on
 Windows. From a clean checkout:
@@ -341,26 +390,44 @@ source .venv/bin/activate        # Windows: .venv\Scripts\Activate.ps1
 python -m pip install "maturin>=1.16,<2.0" "numpy>=1.24" pytest mypy ruff
 maturin develop --release
 
-cargo fmt --manifest-path native/tensortrail-core/Cargo.toml --all -- --check
-cargo clippy --manifest-path native/tensortrail-core/Cargo.toml \
-  --all-targets --all-features -- -D warnings
-cargo test --manifest-path native/tensortrail-core/Cargo.toml --release --all-features
+cargo fmt --check
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test
 
-ruff check python tests benchmarks
-mypy
+ruff check python/tensortrail tests benchmarks
+mypy python/tensortrail
 pytest -q
 
 maturin build --release --sdist --out dist
 ```
 
-See [development.md](development.md) for platform notes and packaging details.
+On Windows/Anaconda, select the intended interpreter explicitly when building
+(`-i C:/path/to/python.exe`) and ensure `PYO3_PYTHON` points at the same
+interpreter. If maturin reports `Access is denied` while running `cargo rustc`,
+check for a stray `cargo` environment variable that points at a directory rather
+than the executable.
 
-## 9. Conclusion
+See [development.md](development.md) for platform notes, packaging details, and
+the clean-install smoke tests.
 
-TensorTrail 0.1.0 delivers the requested numerical comparison engine and Python
-API without claiming GPU, capture, or SIMD capabilities it does not have. The
-numerical policy is explicit, the backends are cross-checked, the native failure
-path is enforced, and the package installs from both wheel and sdist.Hosted CI now passes on Linux, macOS, and Windows, and 0.1.0 is published on
-PyPI through the OIDC release workflow. The main remaining risks are platform
-wheel coverage and the normal variability of parallel benchmark timings; these
-are stated rather than hidden.
+## 10. Release history
+
+- **0.1.0** (2026-10-31): initial alpha; published to PyPI through the
+  release-triggered OIDC workflow. The numerical core, Python API, comparison
+  reports, tests, and benchmarks were verified.
+- **0.2.0** (2026-11-02): execution-aware validation layer implemented and
+  locally verified; not tagged or published.
+
+## 11. Conclusion
+
+TensorTrail 0.2.0 delivers execution-aware inference validation without changing
+the numerical engine or claiming capabilities it does not have. Sessions and
+checkpoint metadata make provenance explicit; alignment is deterministic;
+missing and incompatible checkpoints cannot become passes; persistence is
+versioned, checksummed, and pickle-free. The complete 0.1.0 comparison API
+remains available.
+
+The main remaining risks are the unrun 0.2.0 CI matrix, platform coverage beyond
+the locally tested Windows/CPython 3.13 environment, and the lack of performance
+measurements for the new orchestration layer. These are stated rather than
+hidden. Tagging and publication remain pending explicit authorization.

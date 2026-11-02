@@ -75,6 +75,9 @@ the release path was exercised directly. Since `tensortrail==0.1.0` now exists
 on PyPI, it can no longer be validated on TestPyPI; use a new version if
 TestPyPI validation is needed in the future.
 
+Version 0.2.0 is implemented and locally verified but has not been tagged or
+uploaded. No 0.2.0 TestPyPI or PyPI publication has been attempted.
+
 ## TestPyPI validation
 
 Run the manual workflow first:
@@ -90,7 +93,7 @@ a fresh environment, using PyPI as the dependency fallback:
 python -m pip install \
   --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple/ \
-  "tensortrail==0.1.0"
+  "tensortrail==<version>"
 python -c "import numpy as np, tensortrail as tt; print(tt.compare(np.array([1.0]), np.array([2.0])).metrics.mae)"
 ```
 
@@ -104,8 +107,9 @@ files are accepted, bump the version rather than assuming a file can be replaced
 
 1. Ensure CI is green on `main`.
 2. Review `CHANGELOG.md`, `README.md`, and `docs/engineering_report.md`.
-3. Create and publish a GitHub release tagged `v0.1.0`. The workflow rejects a
-   tag that does not match the three version declarations.
+3. Create and publish a GitHub release tagged `v<version>` (for example,
+   `v0.2.0` when publication is authorized). The workflow rejects a tag that
+   does not match the three version declarations.
 4. Confirm the `Publish TensorTrail` workflow succeeds.
 5. Verify a clean install from PyPI.
 6. Only then update the README's publication status.
@@ -113,11 +117,11 @@ files are accepted, bump the version rather than assuming a file can be replaced
 For a manual production run, select the release tag and dispatch:
 
 ```bash
-gh workflow run publish.yml --ref v0.1.0 -f target=pypi
+gh workflow run publish.yml --ref v<version> -f target=pypi
 ```
 
-Until the production upload succeeds, the README must continue to say no package
-has been published.
+Until the production upload of a new version succeeds, the README must state
+that this version is not yet published.
 
 ## Platform scope
 

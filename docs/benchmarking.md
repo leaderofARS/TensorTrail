@@ -29,6 +29,11 @@ These numbers describe one machine. They are not a promise of the same speedup
 on another CPU, operating system, Python version, or data distribution. Run the
 suites locally before making decisions that depend on performance.
 
+These measurements were taken with TensorTrail 0.1.0. The numerical engine and
+comparison path are unchanged in 0.2.0, so they remain representative of
+`tt.compare()`. They do not include session construction, checkpoint alignment,
+or artifact I/O; no performance claim is made for the 0.2.0 validation layer.
+
 ## End-to-end Python benchmark
 
 ### Methodology

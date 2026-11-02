@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import replace
+from typing import TYPE_CHECKING
 
 from .backends import rust_backend
 from .comparison import engine
@@ -13,6 +14,12 @@ from .core.result import (
     RelativeErrorValue,
     TensorStatistics,
 )
+
+if TYPE_CHECKING:
+    from .execution.session import ExecutionSession
+    from .validation.alignment import CheckpointAlignment
+    from .validation.policy import ValidationPolicy
+    from .validation.results import ValidationResult
 
 __all__ = [
     "available_backends",
@@ -25,6 +32,7 @@ __all__ = [
     "relative_error",
     "rmse",
     "statistics",
+    "validate",
 ]
 
 
@@ -167,6 +175,47 @@ def statistics(
     """
     resolved = _resolve_config(config)
     return engine.statistics(values, resolved)
+
+
+def validate(
+    reference: ExecutionSession,
+    candidate: ExecutionSession,
+    *,
+    policy: ValidationPolicy | None = None,
+    alignment: CheckpointAlignment | None = None,
+    validation_id: str | None = None,
+) -> ValidationResult:
+    """Validate a candidate execution against a reference execution.
+
+    Every matched checkpoint is compared through :func:`compare`. Missing,
+    shape-incompatible, dtype-rejected, and backend-failed checkpoints are
+    reported explicitly; they are never treated as passes. Both sessions must
+    be completed before validation.
+
+    Parameters
+    ----------
+    reference:
+        Completed reference execution.
+    candidate:
+        Completed candidate execution.
+    policy:
+        Execution-level and numerical policy. Defaults to all checkpoints, the
+        standard comparison tolerances, and the native Rust backend.
+    alignment:
+        Explicit alignment produced by :func:`align_checkpoints`. When omitted,
+        alignment is computed with unique checkpoint names.
+    validation_id:
+        Stable validation identifier. Generated when omitted.
+    """
+    from .validation.engine import validate as _validate
+
+    return _validate(
+        reference,
+        candidate,
+        policy=policy,
+        alignment=alignment,
+        validation_id=validation_id,
+    )
 
 
 def is_native_available() -> bool:
