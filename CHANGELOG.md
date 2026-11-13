@@ -84,6 +84,8 @@ still evaluated by `tt.compare()`.
   passed the native smoke test, and uploaded both to PyPI.
 - A clean `pip install tensortrail==0.2.0` from PyPI built the native extension
   and ran native comparison plus persisted execution validation.
+- Hosted CI passed on the publication follow-up commit `a1e1ff1` (16 of 16
+  jobs, including the Linux, Windows, and macOS matrices).
 
 ### Known limitations
 

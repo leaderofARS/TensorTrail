@@ -55,9 +55,6 @@ Additionally, for the published release:
 
 Not verified for this revision:
 
-- the hosted CI matrix is not fully green: the macOS/Python 3.13 job was
-  cancelled by the runner after 15 minutes without executing any steps (no test
-  result), while the other 15 jobs passed;
 - GPU, distributed, or accelerator execution (not implemented);
 - sustained performance of the new validation layer (no new benchmark run).
 
@@ -326,12 +323,13 @@ confirming that bundling Anaconda's zlib would be incorrect.
 
 ### CI status
 
-The 0.2.0 push triggered the hosted CI matrix at commit `f423575`. The Rust
-checks, lint/type checks, NumPy 1.24 floor, Ubuntu Python 3.11–3.14, Windows
-Python 3.11–3.14, and macOS Python 3.11/3.12/3.14 jobs passed. The
-macOS/Python 3.13 job was cancelled by the runner after 15 minutes with no steps
-executed, so the overall run is reported as failed; no test failure was
-observed.
+The hosted CI matrix passed for the publication follow-up commit `a1e1ff1`
+(16 of 16 jobs): Rust checks, Python lint/types, the NumPy 1.24 floor, Ubuntu,
+Windows, and macOS test jobs for Python 3.11–3.14, and the distribution build.
+The earlier push of the 0.2.0 code commit `f423575` had its macOS/Python 3.13
+job cancelled by the runner before executing any steps. The publication
+follow-up run exercised all four macOS versions; two jobs were initially
+cancelled for capacity and passed when retried.
 
 The release-triggered publish workflow for `v0.2.0` passed its build,
 version/tag verification, metadata validation, wheel install, and native smoke
@@ -369,8 +367,6 @@ Published for the scoped 0.2.0 alpha:
 
 Known gaps at publication:
 
-- the macOS/Python 3.13 CI job was cancelled by the runner before running any
-  steps, so the matrix is not fully green;
 - no 0.2.0 benchmark run covers the new orchestration layer;
 - PyTorch checkpoints are supported in memory but require explicit conversion
   before persistence.
@@ -445,8 +441,7 @@ missing and incompatible checkpoints cannot become passes; persistence is
 versioned, checksummed, and pickle-free. The complete 0.1.0 comparison API
 remains available.
 
-The main remaining risks are the runner-cancelled macOS/Python 3.13 CI job,
-platform coverage beyond the tested matrix (only a Linux x86_64 wheel is
-published), and the lack of performance measurements for the new orchestration
-layer. These are stated rather than hidden. Tagging and publication were
-authorized and completed on 2026-11-13.
+The main remaining risks are platform coverage (only a Linux x86_64 wheel is
+published), the lack of performance measurements for the new orchestration
+layer, and the absence of a new benchmark run. These are stated rather than
+hidden. Tagging and publication were authorized and completed on 2026-11-13.
