@@ -1,14 +1,15 @@
 # TensorTrail 0.2.0 Engineering Report
 
-**Date:** 2026-11-02  
-**Status:** alpha, implemented and locally verified; not tagged or published  
+**Date:** 2026-11-13  
+**Status:** alpha, released to PyPI and GitHub  
 **Scope:** execution-aware inference validation on top of the 0.1.0 numerical comparison engine  
-**Distribution:** source only; `0.1.0` remains the current public PyPI release
+**Distribution:** PyPI `0.2.0` (CPython 3.13 manylinux x86_64 wheel and sdist); GitHub release `v0.2.0`
 
 This report separates what was executed and observed from what is planned,
 configured, or deliberately out of scope. It describes the repository state at
-the date above. Version `0.2.0` has not been tagged, uploaded to TestPyPI/PyPI,
-or published as a GitHub release.
+the date above. Version `0.2.0` was tagged `v0.2.0`, published as a GitHub
+release, and uploaded to PyPI on 2026-11-13 by the release-triggered OIDC
+workflow.
 
 ## 1. Summary
 
@@ -44,15 +45,21 @@ Verified locally on Windows 11 with CPython 3.13.5 and NumPy 2.1.3:
   installed package performs native comparison and execution validation;
 - the built extension reports version `0.2.0` and the Python loader accepts it.
 
+Additionally, for the published release:
+
+- the `v0.2.0` release workflow built the Linux wheel and sdist, validated
+  metadata, installed the wheel, passed the native-backend smoke test, and
+  uploaded both distributions to PyPI;
+- a clean `pip install tensortrail==0.2.0` from PyPI built the extension from
+  the sdist and ran native comparison plus persisted execution validation.
+
 Not verified for this revision:
 
-- hosted CI has not run for the 0.2.0 working tree; the last green CI run was
-  for 0.1.0;
-- Python 3.11, 3.12, and 3.14, Linux, and macOS have not been re-run for 0.2.0;
-  the 0.1.0 matrix results remain historical evidence only;
+- the hosted CI matrix is not fully green: the macOS/Python 3.13 job was
+  cancelled by the runner after 15 minutes without executing any steps (no test
+  result), while the other 15 jobs passed;
 - GPU, distributed, or accelerator execution (not implemented);
-- sustained performance of the new validation layer (no new benchmark run);
-- publication from this workstation (deliberately withheld).
+- sustained performance of the new validation layer (no new benchmark run).
 
 ## 2. Implemented capability
 
@@ -319,11 +326,17 @@ confirming that bundling Anaconda's zlib would be incorrect.
 
 ### CI status
 
-The 0.2.0 revision has not been pushed to the hosted CI workflow at the time of
-this report. The previous 0.1.0 revision passed the Rust checks, lint/type
-checks, the Linux/macOS/Windows Python matrix, the NumPy floor job, and the
-packaging smoke job. Those results are not presented as verification of 0.2.0.
-The local gates above are the current evidence for this revision.
+The 0.2.0 push triggered the hosted CI matrix at commit `f423575`. The Rust
+checks, lint/type checks, NumPy 1.24 floor, Ubuntu Python 3.11–3.14, Windows
+Python 3.11–3.14, and macOS Python 3.11/3.12/3.14 jobs passed. The
+macOS/Python 3.13 job was cancelled by the runner after 15 minutes with no steps
+executed, so the overall run is reported as failed; no test failure was
+observed.
+
+The release-triggered publish workflow for `v0.2.0` passed its build,
+version/tag verification, metadata validation, wheel install, and native smoke
+test, then uploaded the wheel and sdist to PyPI. A clean install of the
+published package passed native comparison and persisted validation.
 
 ### Benchmarks
 
@@ -337,9 +350,9 @@ Previously recorded `tt.compare` medians (Windows 11, i7-12700H class, CPython
 3.13.5, NumPy 2.1.3, release build) remain in
 [benchmarking.md](benchmarking.md) and `benchmarks/results/`.
 
-## 7. Release readiness
+## 7. Release status
 
-Satisfied for the scoped 0.2.0 alpha:
+Published for the scoped 0.2.0 alpha:
 
 - execution metadata, sessions, checkpoints, alignment, validation policy,
   validation engine, results, and local artifacts are implemented and tested;
@@ -350,16 +363,20 @@ Satisfied for the scoped 0.2.0 alpha:
   and pickle-free loading;
 - the complete 0.1.0 public API remains available;
 - wheel and sdist build and install cleanly;
-- documentation distinguishes implemented behavior from deferred work.
+- documentation distinguishes implemented behavior from deferred work;
+- the `v0.2.0` GitHub release and PyPI upload were authorized and completed on
+  2026-11-13.
 
-Outstanding before publication:
+Known gaps at publication:
 
-- run hosted CI for the 0.2.0 revision;
-- decide whether to re-run the Python/OS matrix and benchmarks for 0.2.0;
-- obtain explicit authorization to tag and publish; none has been given.
+- the macOS/Python 3.13 CI job was cancelled by the runner before running any
+  steps, so the matrix is not fully green;
+- no 0.2.0 benchmark run covers the new orchestration layer;
+- PyTorch checkpoints are supported in memory but require explicit conversion
+  before persistence.
 
-The 0.1.0 production upload occurred on 2026-10-31 with explicit authorization.
-No 0.2.0 tag, GitHub release, TestPyPI upload, or PyPI upload has occurred.
+The 0.1.0 production upload occurred on 2026-10-31. The 0.2.0 production upload
+occurred on 2026-11-13; TestPyPI was not used.
 
 ## 8. Deliberately not implemented
 
@@ -415,8 +432,9 @@ the clean-install smoke tests.
 - **0.1.0** (2026-10-31): initial alpha; published to PyPI through the
   release-triggered OIDC workflow. The numerical core, Python API, comparison
   reports, tests, and benchmarks were verified.
-- **0.2.0** (2026-11-02): execution-aware validation layer implemented and
-  locally verified; not tagged or published.
+- **0.2.0** (2026-11-13): execution-aware validation layer; tagged `v0.2.0`,
+  released on GitHub, and published to PyPI through the release-triggered OIDC
+  workflow.
 
 ## 11. Conclusion
 
@@ -427,7 +445,8 @@ missing and incompatible checkpoints cannot become passes; persistence is
 versioned, checksummed, and pickle-free. The complete 0.1.0 comparison API
 remains available.
 
-The main remaining risks are the unrun 0.2.0 CI matrix, platform coverage beyond
-the locally tested Windows/CPython 3.13 environment, and the lack of performance
-measurements for the new orchestration layer. These are stated rather than
-hidden. Tagging and publication remain pending explicit authorization.
+The main remaining risks are the runner-cancelled macOS/Python 3.13 CI job,
+platform coverage beyond the tested matrix (only a Linux x86_64 wheel is
+published), and the lack of performance measurements for the new orchestration
+layer. These are stated rather than hidden. Tagging and publication were
+authorized and completed on 2026-11-13.

@@ -7,11 +7,11 @@ TensorTrail uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The project is currently in the `0.x` series: public APIs may change in a minor
 release, and such changes will be called out here.
 
-## [0.2.0] - 2026-11-02
+## [0.2.0] - 2026-11-13
 
-**Not yet published.** This version is implemented, tested, and packaged
-locally. It has not been tagged, uploaded to TestPyPI/PyPI, or released; those
-steps require explicit authorization.
+Published to PyPI on 2026-11-13 from the `v0.2.0` tag through the release-triggered
+OIDC workflow. The uploaded artifacts are a CPython 3.13
+`manylinux_2_34_x86_64` wheel and an sdist.
 
 Execution-aware inference validation is added on top of the 0.1.0 numerical
 engine. The comparison engine itself is unchanged, and every checkpoint pair is
@@ -70,7 +70,7 @@ still evaluated by `tt.compare()`.
 - The public namespace exports the execution/validation types alongside the
   complete 0.1.0 API.
 
-### Verified locally
+### Verification
 
 - Rust: `cargo fmt --check`, Clippy with `-D warnings`, and 57 tests pass.
 - Python: Ruff passes; strict mypy passes on 29 source files; the full suite
@@ -80,7 +80,10 @@ still evaluated by `tt.compare()`.
   both install into clean virtual environments, and the installed package runs
   native comparison and persisted validation.
 - The built extension reports version `0.2.0`.
-- CI has not yet run for this revision.
+- The `v0.2.0` release workflow built and validated the Linux wheel and sdist,
+  passed the native smoke test, and uploaded both to PyPI.
+- A clean `pip install tensortrail==0.2.0` from PyPI built the native extension
+  and ran native comparison plus persisted execution validation.
 
 ### Known limitations
 
@@ -165,5 +168,5 @@ not included; see [Scope and non-goals](README.md#scope-and-non-goals).
 - The 0.1.0 wheel targets CPython 3.13 on Linux x86_64; other platforms build
   from source. The package is published on PyPI.
 
-[0.2.0]: https://github.com/leaderofARS/tensortrail/compare/v0.1.0...HEAD
+[0.2.0]: https://github.com/leaderofARS/tensortrail/releases/tag/v0.2.0
 [0.1.0]: https://github.com/leaderofARS/tensortrail/releases/tag/v0.1.0

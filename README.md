@@ -9,14 +9,14 @@ explicit conversion provenance. The default engine is a Rust extension built
 with PyO3 and Rayon. A NumPy implementation is included as a readable reference
 backend and parity oracle.
 
-> **Status: 0.2.0 alpha (source).** The 0.1.0 numerical core, Python API,
-> comparison reports, tests, and benchmarks are implemented and verified. 0.2.0
-> adds execution-aware inference validation on top of that engine: sessions,
+> **Status: 0.2.0 alpha.** The 0.1.0 numerical core, Python API, comparison
+> reports, tests, and benchmarks are implemented and verified. 0.2.0 adds
+> execution-aware inference validation on top of that engine: sessions,
 > checkpoint metadata, deterministic alignment, validation policies, explicit
 > missing/incompatible outcomes, and local checksummed artifacts. GPU execution,
 > automatic activation capture, and explicit SIMD kernels are **not**
-> implemented; see [Scope and non-goals](#scope-and-non-goals). 0.2.0 is not yet
-> tagged or published; see [Installation](#installation).
+> implemented; see [Scope and non-goals](#scope-and-non-goals). 0.2.0 was
+> published to PyPI on 2026-11-13; see [Installation](#installation).
 
 ## Why TensorTrail
 
@@ -64,12 +64,11 @@ Optional PyTorch input support:
 python -m pip install "tensortrail[torch]"
 ```
 
-tensortrail 0.1.0 is the current PyPI release:
+tensortrail 0.2.0 is the current PyPI release:
 `python -m pip install tensortrail`. The published wheel targets CPython 3.13
-on Linux x86_64; other platforms install from source and need a Rust toolchain.
-The 0.2.0 source in this repository is implemented and locally verified but has
-not been tagged or published. Install it from a checkout with
-`python -m pip install .` (or `maturin develop --release` for development).
+on Linux x86_64; other platforms install from the source distribution and need
+a Rust toolchain. For a development checkout use `python -m pip install .` or
+`maturin develop --release`.
 
 ## Quick start
 

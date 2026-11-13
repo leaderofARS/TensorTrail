@@ -75,8 +75,10 @@ the release path was exercised directly. Since `tensortrail==0.1.0` now exists
 on PyPI, it can no longer be validated on TestPyPI; use a new version if
 TestPyPI validation is needed in the future.
 
-Version 0.2.0 is implemented and locally verified but has not been tagged or
-uploaded. No 0.2.0 TestPyPI or PyPI publication has been attempted.
+Version 0.2.0 was tagged `v0.2.0` and published to PyPI on 2026-11-13 through the
+release-triggered workflow. The uploaded artifacts were a CPython 3.13
+`manylinux_2_34_x86_64` wheel and the sdist, and a clean install from PyPI was
+verified. TestPyPI was not used for 0.2.0.
 
 ## TestPyPI validation
 
@@ -108,8 +110,8 @@ files are accepted, bump the version rather than assuming a file can be replaced
 1. Ensure CI is green on `main`.
 2. Review `CHANGELOG.md`, `README.md`, and `docs/engineering_report.md`.
 3. Create and publish a GitHub release tagged `v<version>` (for example,
-   `v0.2.0` when publication is authorized). The workflow rejects a tag that
-   does not match the three version declarations.
+   `v0.2.0`). The workflow rejects a tag that does not match the three version
+   declarations.
 4. Confirm the `Publish TensorTrail` workflow succeeds.
 5. Verify a clean install from PyPI.
 6. Only then update the README's publication status.
